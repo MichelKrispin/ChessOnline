@@ -1,3 +1,5 @@
+from ChessBoard import ChessBoard
+
 class ChessGame():
     """
     The class which handles all of the chess logic and
@@ -21,23 +23,32 @@ class ChessGame():
         # Only for showing more information
         self.verbose = verbose
 
+        # Create a chess board
+        self.chess_board = ChessBoard()
+
         # Start the game loop
         self.game_loop()
 
     def game_loop(self):
         """
         The game loop.
+        The data send to the clients is prepended by a + or - to indicate
+        the active player. After that the board data will be send.
+        All in all it looks like
+        +R,N,B,Q,K,B,N,R.P,P,P,P,P,P,P. and so on
+        The dot indicates a line break.
         """
         # Initialize by sending active player to the active player
         self.player_connections[self.active_player].send(b'+')
 
         while True:
+            # Check for a valid input
             unique_count = 0
-            valid_request = False
-            while not valid_request:
+            request_data = b''
+            while True:
                 request_data = self.player_connections[self.active_player].recv(1024)
                 if self.validate_request_data(request_data):
-                    valid_request = True
+                    break
                 else:
                     if self.verbose: print(f'{request_data} was invalid input')
                     response = (b'Invalid input + Input row column to row column (e.g. a1 to h8)'
@@ -46,12 +57,19 @@ class ChessGame():
                 unique_count += 1
             if self.verbose: print(f"Requested: {request_data.decode('utf-8')}")
 
+            # If the input is valid make the move
+            self.chess_board.make_move(
+                request_data[:2].decode('utf-8'), request_data[-2:].decode('utf-8')
+            )
+
             # Send data to active player
-            active_response = b'-'
+            rendered_board = self.chess_board.render_to_byte_text()
+            print(rendered_board)
+            active_response = b'-' + rendered_board
             self.player_connections[self.active_player].sendall(active_response)
 
             # Send data to opponent player
-            inactive_response = b'+'
+            inactive_response = b'+' + rendered_board
             self.player_connections[self.inactive_player].sendall(inactive_response)
 
             self.switch_player()
