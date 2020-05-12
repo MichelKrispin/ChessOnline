@@ -18,7 +18,8 @@ def connect_to_server(verbose=True):
             if verbose: print(e) 
             sys.exit(1)
 
-        s.sendall(b'Hello World')
+        address, port = s.getsockname()
+        s.sendall(b'Hello from ' + address.encode() + b':' + str(port).encode())
         while True:
             data = s.recv(1024)
             if old_data != data:
@@ -59,6 +60,10 @@ def render_received_byte_text(byte_data):
     # If the byte_data only consist of a + don't show it
     if len(byte_data) < 2:
         return ''
+
+    # If the first two elements are ++ its an error message so print it
+    if chr(byte_data[0]) == '+' and chr(byte_data[1]) == '+':
+        return byte_data[2:].decode('utf-8')
 
     result = '  _______________\n8|'
     row_counter = 8

@@ -1,4 +1,4 @@
-from ChessBoard import ChessBoard
+from ChessBoard import ChessBoard, ChessMove
 
 class ChessGame():
     """
@@ -38,33 +38,57 @@ class ChessGame():
         +R,N,B,Q,K,B,N,R.P,P,P,P,P,P,P. and so on
         The dot indicates a line break.
         """
-        # Initialize by sending active player to the active player
-        self.player_connections[self.active_player].send(b'+')
+        # Initialize by sending the board to active in inactive player
+        rendered_board = self.chess_board.render_to_byte_text()
+        active_response = b'+' + rendered_board
+        self.player_connections[self.active_player].sendall(active_response)
+
+        inactive_response = b'-' + rendered_board
+        self.player_connections[self.inactive_player].sendall(inactive_response)
 
         while True:
-            # Check for a valid input
+            # Check for a valid input for as long as it is needed
             unique_count = 0
-            request_data = b''
             while True:
                 request_data = self.player_connections[self.active_player].recv(1024)
+
+                # Check if the input is valid (a1 to h8 etc.)
                 if self.validate_request_data(request_data):
-                    break
+                    # If the input is valid make the move
+                    move = self.chess_board.make_move(
+                        request_data[:2].decode('utf-8'),
+                        request_data[-2:].decode('utf-8'),
+                        self.active_player
+                    )
+
+                    # If the move was invalid ask again for input
+                    if move == ChessMove.INVALID_MOVE:
+                        if self.verbose: print("Validator failed")
+                        response = (b'++Invalid move ' + str(unique_count).encode())
+                        self.player_connections[self.active_player].sendall(response)
+
+                    # Otherwise go more into detail of what happened and toggle the player
+                    else:
+                        if move == ChessMove.CHECK_MATE:
+                            if self.verbose: print("Check mate")
+                        elif move == ChessMove.STALE_MATE:
+                            if self.verbose: print("Stale mate")
+                        else:
+                            if self.verbose: print("Valid move")
+                        break
+
+                # If the input was invalid ask for input again and notify player
                 else:
                     if self.verbose: print(f'{request_data} was invalid input')
-                    response = (b'Invalid input + Input row column to row column (e.g. a1 to h8)'
+                    response = (
+                            b'++Invalid input (except row col to row col e.g. a1 to h8) '
                         + str(unique_count).encode())
                     self.player_connections[self.active_player].sendall(response)
                 unique_count += 1
             if self.verbose: print(f"Requested: {request_data.decode('utf-8')}")
 
-            # If the input is valid make the move
-            self.chess_board.make_move(
-                request_data[:2].decode('utf-8'), request_data[-2:].decode('utf-8')
-            )
-
             # Send data to active player
             rendered_board = self.chess_board.render_to_byte_text()
-            print(rendered_board)
             active_response = b'-' + rendered_board
             self.player_connections[self.active_player].sendall(active_response)
 
