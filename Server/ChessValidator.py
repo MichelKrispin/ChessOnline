@@ -43,14 +43,17 @@ class ChessValidator():
 
         # - If there is no figure of the own team on the source spot
         if not self.validate_figure_from_active_team():
+            print('validate_figure_from_active_team failed')
             return False
 
         # - If there is already a figure of the from team
         if not self.validate_from_same_team_or_enemy_king():
+            print('validate_from_same_team_or_enemy_king failed')
             return False
 
         # - If the destination is allowed by the figure type
         if not self.validate_figure_type_in_range():
+            print('validate_figure_type_in_range failed')
             return False
 
         print("Validator -> Valid move")
@@ -61,7 +64,6 @@ class ChessValidator():
         Validates whether the figure on the source spot actually belongs
         to the active players team.
         """
-        # TODO: Validate whether the figure is from active team
         valid_range = ord('a') # White team is between a-z (ord gets ascii value)
         if self.active_player:
             valid_range = ord('A')
@@ -79,10 +81,27 @@ class ChessValidator():
     def validate_from_same_team_or_enemy_king(self):
         """
         Validates whether the source and destination is from the same team
-        or if the source is the enemy king. Both would be invalid.
+        or if the destination is the enemy king. Both would be invalid.
         Otherwise True will be returned.
         """
         # TODO: Validate from same team
+        source_figure = self.board[self.from_col][self.from_row]
+        destination_figure = self.board[self.to_col][self.to_row]
+
+        # If destination figure is a King it failed
+        if destination_figure == ord('k') or destination_figure == ord('K'):
+            return False
+
+        # If both figures are in the same range it failed
+        if ord(source_figure) - ord('a') - 1 > 0: # Source is team white (small letters)
+            # If destination figure is also white its invalid
+            if ord(destination_figure) - ord('a') > 0:
+                return False
+        else: # If negative it is team black (capital letters)
+            # If destination figure is also black its invalid
+            if ord(destination_figure) - ord('a') < 0:
+                return False
+
         return True
     
     def validate_figure_type_in_range(self):
