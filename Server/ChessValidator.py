@@ -133,7 +133,6 @@ class ChessValidator():
             # Then there can't be something in between
             # So go trough the whole row and check whether there is something in between
             if self.from_col == self.to_col:
-                print("Equal columns")
                 smaller, greater = self.max_out_of_two(self.from_row, self.to_row)
                 # Go trough all but the latest as this one could be a figure
                 for i in range(1, greater - smaller):
@@ -142,14 +141,11 @@ class ChessValidator():
 
             # Otherwise go trough the whole column
             elif self.from_row == self.to_row:
-                print("Equal rows")
                 smaller, greater = self.max_out_of_two(self.from_col, self.to_col)
                 # Go trough all but the latest as this one could be a figure
                 for i in range(1, ord(greater) - ord(smaller)):
                     if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
                         return False
-            else:
-                print("NOT VALID")
 
         elif figure in ['b', 'B']: # Bishop
             print('Figure is b/B')
