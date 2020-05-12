@@ -1,4 +1,6 @@
 class ChessValidator():
+    def __init__(self):
+        self.columns = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
 
     def validate_move(self, board, from_string, to_string, active_player):
         """
@@ -69,9 +71,6 @@ class ChessValidator():
             valid_range = ord('A')
 
         source_figure = self.board[self.from_col][self.from_row]
-        print(
-            f"Validator -> source_figure at {ord(source_figure)} in range {valid_range} to {valid_range+26}"
-        )
         # If not in the range of a/A to z/Z return False
         if ord(source_figure) < valid_range or ord(source_figure) > valid_range + 26:
             return False
@@ -84,9 +83,16 @@ class ChessValidator():
         or if the destination is the enemy king. Both would be invalid.
         Otherwise True will be returned.
         """
-        # TODO: Validate from same team
         source_figure = self.board[self.from_col][self.from_row]
         destination_figure = self.board[self.to_col][self.to_row]
+
+        # If there is no figure on the source spot it failed
+        if source_figure == ' ':
+            return False
+
+        # If there is no figure on the destination spot we don't care
+        if destination_figure == ' ':
+            return True
 
         # If destination figure is a King it failed
         if destination_figure == ord('k') or destination_figure == ord('K'):
@@ -110,6 +116,65 @@ class ChessValidator():
         E.g. a King is only allowed to go one step away from his position.
         """
         # TODO: Validate if figure type goes to the correct destination
+
+        figure = self.board[self.from_col][self.from_row]
+        # There are two types of figures unique ones and generic ones
+        # First the generic ones are validated
+        # These are r/R, b/B, q/Q, k/K
+
+        if figure in ['r', 'R']: # Rook
+            # Rook is allowed to go along the column and rows
+            # So either the columns or the rows must be the same
+            print('Figure is r/R')
+            if (self.from_col != self.to_col and
+                self.from_row != self.to_row):
+                return False
+            
+            # Then there can't be something in between
+            # So go trough the whole row and check whether there is something in between
+            if self.from_col == self.to_col:
+                print("Equal columns")
+                smaller, greater = self.max_out_of_two(self.from_row, self.to_row)
+                # Go trough all but the latest as this one could be a figure
+                for i in range(1, greater - smaller):
+                    if self.board[self.from_col][smaller + i] != ' ':
+                        return False
+
+            # Otherwise go trough the whole column
+            elif self.from_row == self.to_row:
+                print("Equal rows")
+                smaller, greater = self.max_out_of_two(self.from_col, self.to_col)
+                # Go trough all but the latest as this one could be a figure
+                for i in range(1, ord(greater) - ord(smaller)):
+                    if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
+                        return False
+            else:
+                print("NOT VALID")
+
+        elif figure in ['b', 'B']: # Bishop
+            print('Figure is b/B')
+
+        elif figure in ['q', 'Q']: # Queen
+            print('Figure is q/Q')
+
+        elif figure in ['k', 'K']: # King
+            print('Figure is k/K')
+
+        # The unique ones are n/N and p/P because they have unique
+        # patterns for each team i.e. going downwards/upwards
+
+        elif figure == 'n': # White Knight
+            print('Figure is n')
+
+        elif figure == 'N': # Black Knight
+            print('Figure is N')
+
+        elif figure == 'p': # White Pawn
+            print('Figure is p')
+
+        elif figure == 'P': # Black Pawn
+            print('Figure is P')
+
         return True
 
     def check_mate(self):
@@ -126,3 +191,10 @@ class ChessValidator():
         # TODO: Check for stalemate
         return False
 
+    def max_out_of_two(self, first, second):
+        """
+        A helper function which returns two ordered elements as a tuple.
+        """
+        if first < second:
+            return first, second
+        return second, first

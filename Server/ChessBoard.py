@@ -61,7 +61,6 @@ class ChessBoard():
         elif self.chess_validator.stale_mate():
             return ChessMove.STALE_MATE
 
-
         # If everything passed make the move (chess indices start from 1)
         figure = self.board[from_string[0]][int(from_string[1])-1]
         self.board[from_string[0]][int(from_string[1])-1] = ' '
