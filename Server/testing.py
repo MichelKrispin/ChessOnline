@@ -2,6 +2,7 @@
 
 from ChessValidator import ChessValidator
 from contextlib import contextmanager
+from enum import Enum
 import sys, os
 import inspect
 import argparse
@@ -18,6 +19,13 @@ def suppress_stdout():
             yield
         finally:
             sys.stdout = old_stdout
+# ------------------
+
+# ------------------
+# Enum class for making the test function easier
+class Expect():
+    FALSE = False
+    TRUE = True
 # ------------------
 
 # ------------------
@@ -130,7 +138,8 @@ def testing_chess_validator_move_generic():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Same position and same team',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # -----
 
@@ -143,7 +152,8 @@ def testing_chess_validator_move_generic():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Same team',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # -----
 
@@ -155,7 +165,8 @@ def testing_chess_validator_move_generic():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Different team',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # -----
     
@@ -187,7 +198,8 @@ def testing_chess_validator_move_rook():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing across near pawn',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # ------
 
@@ -211,7 +223,8 @@ def testing_chess_validator_move_rook():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing across 3 step away pawn',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
         
     # -----
 
@@ -235,7 +248,7 @@ def testing_chess_validator_move_rook():
             board, from_string, to_string, active_player),
             'Drawing two steps',
             line_number(),
-            False))
+            Expect.TRUE))
         
     # -----
 
@@ -260,7 +273,7 @@ def testing_chess_validator_move_rook():
             board, from_string, to_string, active_player),
             'Drawing two steps (black team)',
             line_number(),
-            False))
+            Expect.TRUE))
         
     # -----
 
@@ -285,7 +298,7 @@ def testing_chess_validator_move_rook():
             board, from_string, to_string, active_player),
             'Drawing sideways',
             line_number(),
-            False))
+            Expect.TRUE))
         
     # -----
 
@@ -309,7 +322,8 @@ def testing_chess_validator_move_rook():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing sideways across pawn',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
         
     # -----
 
@@ -334,7 +348,7 @@ def testing_chess_validator_move_rook():
             board, from_string, to_string, active_player),
             'Drawing sideways in front of pawn',
             line_number(),
-            False))
+            Expect.TRUE))
         
     # -----
 
@@ -374,7 +388,7 @@ def testing_chess_validator_move_knight():
                 board, from_string, to_string, active_player),
                 (f'Drawing knight c3 to {to_string} ({count})'),
                 line_number(),
-                False))
+                Expect.TRUE))
         count += 1
 
     # ------
@@ -402,7 +416,8 @@ def testing_chess_validator_move_knight():
                 chess_validator.validate_move(
                 board, from_string, to_string, active_player),
                 (f'Drawing knight (invalid) c3 to {to_string} ({count})'),
-                line_number()))
+                line_number(),
+                Expect.FALSE))
         count += 1
 
     # ------
@@ -438,7 +453,8 @@ def testing_chess_validator_move_bishop():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing straight',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # ------
 
@@ -462,7 +478,7 @@ def testing_chess_validator_move_bishop():
             board, from_string, to_string, active_player),
             'Drawing left diagonal',
             line_number(),
-            False))
+            Expect.TRUE))
 
     # ------
 
@@ -486,7 +502,7 @@ def testing_chess_validator_move_bishop():
             board, from_string, to_string, active_player),
             'Drawing right diagonal',
             line_number(),
-            False))
+            Expect.TRUE))
 
     # ------
 
@@ -510,7 +526,7 @@ def testing_chess_validator_move_bishop():
             board, from_string, to_string, active_player),
             'Drawing down left diagonal',
             line_number(),
-            False))
+            Expect.TRUE))
 
     # ------
 
@@ -534,7 +550,7 @@ def testing_chess_validator_move_bishop():
             board, from_string, to_string, active_player),
             'Drawing down right diagonal (black team)',
             line_number(),
-            False))
+            Expect.TRUE))
 
     # ------
 
@@ -557,7 +573,8 @@ def testing_chess_validator_move_bishop():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing up right across pawn (black team)',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # ------
 
@@ -580,7 +597,8 @@ def testing_chess_validator_move_bishop():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing down right across pawn',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # ------
 
@@ -603,7 +621,8 @@ def testing_chess_validator_move_bishop():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing somewhere',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # ------
 
@@ -630,7 +649,7 @@ def testing_chess_validator_move_queen():
     
     from_string = 'd5'
     active_player = 0
-    to_strings = ['d6', 'd7', 'f7', 'h5', 'a5', 'a7', 'd3', 'f3']
+    to_strings = ['d6', 'd7', 'f7', 'h5', 'a5', 'b7', 'd3', 'f3']
     count = 1
     for to_string in to_strings:
         with suppress_stdout():
@@ -638,7 +657,8 @@ def testing_chess_validator_move_queen():
                 chess_validator.validate_move(
                 board, from_string, to_string, active_player),
                 (f'Drawing queen (invalid) d5 to {to_string} ({count})'),
-                line_number()))
+                line_number(),
+                Expect.TRUE))
         count += 1
 
     # ------
@@ -653,7 +673,59 @@ def testing_chess_validator_move_queen():
                 board, from_string, to_string, active_player),
                 (f'Drawing queen (invalid) d5 to {to_string} ({count})'),
                 line_number(),
-                False))
+                Expect.FALSE))
+        count += 1
+
+    # ------
+
+    result.append('> Finished')
+    return result
+
+def testing_chess_validator_move_king():
+    result = ['>> Testing Move King']
+    chess_validator = ChessValidator()
+
+    # ------
+    # First check valid moves
+
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|               |
+5|        k      |
+4|               |
+3|               |
+2|p p p p p p p p|
+1|r n b q   b n r|
+""")
+    
+    from_string = 'e5'
+    active_player = 0
+    to_strings = ['e6', 'd6', 'd5', 'd4', 'e4', 'f4', 'f5', 'f6']
+    count = 1
+    for to_string in to_strings:
+        with suppress_stdout():
+            result.append(test_result(
+                chess_validator.validate_move(
+                board, from_string, to_string, active_player),
+                (f'Drawing king (invalid) e5 to {to_string} ({count})'),
+                line_number(),
+                Expect.TRUE))
+        count += 1
+
+    # ------
+    # Then invalid moves
+    
+    to_strings = ['d8', 'e7', 'f7', 'e1', 'c5', 'a3', 'd7', 'g6']
+    count = 1
+    for to_string in to_strings:
+        with suppress_stdout():
+            result.append(test_result(
+                chess_validator.validate_move(
+                board, from_string, to_string, active_player),
+                (f'Drawing king (invalid) e5 to {to_string} ({count})'),
+                line_number(),
+                Expect.FALSE))
         count += 1
 
     # ------
@@ -687,7 +759,8 @@ def testing_chess_validator_template():
             chess_validator.validate_move(
             board, from_string, to_string, active_player),
             'Drawing across near pawn',
-            line_number()))
+            line_number(),
+            Expect.FALSE))
 
     # ------
 
@@ -695,7 +768,7 @@ def testing_chess_validator_template():
     return result
 '''
 
-def test_result(result, out_message, line_number, success_on_false=True):
+def test_result(result, out_message, line_number, expect):
     """
     The result of the testing function should be put into the result
     argument, the message which describes this test to out_message
@@ -703,11 +776,12 @@ def test_result(result, out_message, line_number, success_on_false=True):
     success_on_false to be False.
     Returns the message with success or failed.
     """
-    if not success_on_false:
+    if expect == Expect.TRUE:
         result = not result
     if not result:
         return ('+ ' + out_message)
-    return ('- FAILED - ' + str(line_number) + ' - ' + out_message)
+    option_msg = ' (expected True)' if expect else ' (expected False)'
+    return ('- FAILED - ' + str(line_number) + ' - ' + out_message + option_msg)
     
 
 def run_test(testing_function, shorten):
@@ -747,4 +821,5 @@ if __name__ == '__main__':
     run_test(testing_chess_validator_move_knight, shorten)
     run_test(testing_chess_validator_move_bishop, shorten)
     run_test(testing_chess_validator_move_queen, shorten)
+    run_test(testing_chess_validator_move_king, shorten)
 
