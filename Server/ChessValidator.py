@@ -242,7 +242,14 @@ class ChessValidator():
 
         elif figure in ['k', 'K']: # King
             # TODO: Validate King
+            # The king is only allowed to do one step.
+            # So the differences from new to old columns can only
+            # be 1 or 0. Otherwise the turn is invalid.
             print('Figure is k/K')
+            col_difference = abs(ord(self.to_col) - ord(self.from_col))
+            row_difference = abs(self.to_row - self.from_row)
+            if col_difference > 1 or row_difference > 1:
+                return False
 
         # The unique one is p/P because it has unique
         # patterns for each team i.e. going downwards/upwards
