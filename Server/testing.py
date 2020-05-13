@@ -372,6 +372,171 @@ def testing_chess_validator_move_bishop():
 
     # ------
 
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|               |
+5|               |
+4|               |
+3|  p            |
+2|p   p p p p p p|
+1|r n b q k b n r|
+""")
+    
+    from_string = 'c1'
+    to_string = 'a3'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing left diagonal',
+            line_number(),
+            False))
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|               |
+5|               |
+4|               |
+3|        b      |
+2|p p p p p p p p|
+1|r n   q k b n r|
+""")
+    
+    from_string = 'e3'
+    to_string = 'h6'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing right diagonal',
+            line_number(),
+            False))
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|          b    |
+5|               |
+4|               |
+3|               |
+2|p p p p p p p p|
+1|r n b q k   n r|
+""")
+    
+    from_string = 'f6'
+    to_string = 'c3'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing down left diagonal',
+            line_number(),
+            False))
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K   N R|
+7|P P P P P P P P|
+6|               |
+5|    B          |
+4|               |
+3|               |
+2|p p p p p p p p|
+1|r n b q k b n r|
+""")
+    
+    from_string = 'c5'
+    to_string = 'e3'
+    active_player = 1
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing down right diagonal (black team)',
+            line_number(),
+            False))
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K   N R|
+7|P P P P P P P P|
+6|               |
+5|    B          |
+4|               |
+3|               |
+2|p p p p p p p p|
+1|r n b q k b n r|
+""")
+    
+    from_string = 'c5'
+    to_string = 'f8'
+    active_player = 1
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing up right across pawn (black team)',
+            line_number()))
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|               |
+5|    b          |
+4|      p        |
+3|               |
+2|p p p p p p p p|
+1|r n b q k   n r|
+""")
+    
+    from_string = 'c5'
+    to_string = 'e3'
+    active_player = 1
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing down right across pawn',
+            line_number()))
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|               |
+5|               |
+4|               |
+3|        b      |
+2|p p p p p p p p|
+1|r n   q k b n r|
+""")
+    
+    from_string = 'e3'
+    to_string = 'b8'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing somewhere',
+            line_number()))
+
+    # ------
+
     result.append('> Finished')
     return result
 
@@ -424,17 +589,24 @@ def test_result(result, out_message, line_number, success_on_false=True):
     return ('- FAILED - ' + str(line_number) + ' - ' + out_message)
     
 
-def run_test(testing_function):
+def run_test(testing_function, shorten):
     """
     Run a test and print its results.
     """
     result = testing_function()
     for r in result:
-        print(r)
+        if shorten:
+            if '+' in r:
+                print('+ ', end='')
+            else:
+                print('\n' + r)
+        else:
+            print(r)
     print('')    
 
 if __name__ == '__main__':
-    run_test(testing_chess_validator_move_generic)
-    run_test(testing_chess_validator_move_rook)
-    run_test(testing_chess_validator_move_bishop)
+    shorten = False
+    run_test(testing_chess_validator_move_generic, shorten)
+    run_test(testing_chess_validator_move_rook, shorten)
+    run_test(testing_chess_validator_move_bishop, shorten)
 
