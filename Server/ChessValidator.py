@@ -120,7 +120,7 @@ class ChessValidator():
         figure = self.board[self.from_col][self.from_row]
         # There are two types of figures unique ones and generic ones
         # First the generic ones are validated
-        # These are r/R, b/B, q/Q, k/K
+        # These are r/R, b/B, n/N, q/Q, k/K
 
         if figure in ['r', 'R']: # Rook
             # Rook is allowed to go along the column and rows
@@ -148,27 +148,33 @@ class ChessValidator():
                         return False
 
         elif figure in ['b', 'B']: # Bishop
+            # TODO: Validate Bishop
+            # The difference between the columns and the rows has to be the same
+            # because the Bishop is allowed to walk in diagonal lines
             print('Figure is b/B')
+            if ord(self.from_col) - ord(self.to_col) != self.from_row - self.to_row:
+                return False
+
+        elif figure in ['n', 'N']: # White Knight
+            # TODO: Validate Knight
+            print('Figure is n')
 
         elif figure in ['q', 'Q']: # Queen
+            # TODO: Validate Queen
             print('Figure is q/Q')
 
         elif figure in ['k', 'K']: # King
+            # TODO: Validate King
             print('Figure is k/K')
 
-        # The unique ones are n/N and p/P because they have unique
+        # The unique one is p/P because it has unique
         # patterns for each team i.e. going downwards/upwards
-
-        elif figure == 'n': # White Knight
-            print('Figure is n')
-
-        elif figure == 'N': # Black Knight
-            print('Figure is N')
-
         elif figure == 'p': # White Pawn
+            # TODO: Validate white team pawn
             print('Figure is p')
 
         elif figure == 'P': # Black Pawn
+            # TODO: Validate black team pawn
             print('Figure is P')
 
         return True
