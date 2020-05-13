@@ -7,6 +7,20 @@ import sys, os
 import inspect
 import argparse
 
+"""
+# How To
+1. Scroll down to the commented test_..._template method
+2. Copy it and rename it to a meaningful name
+3. Fill out the chess board to the testing values
+4. Set new from and to values
+5. Change the text inside the function call to something helpful
+6. Set the Expect value to Expect.TRUE if the function call should return true
+   or to Expect.FALSE if you expect the move to be invalid.
+7. Call the new method from the main at the bottom of this file.
+8. Run the file and see whether the test has passed
+
+"""
+
 # --------------------
 # For suppressing the output of the functions which are tested
 # (copied from stackoverflow)
@@ -733,6 +747,206 @@ def testing_chess_validator_move_king():
     result.append('> Finished')
     return result
 
+def testing_chess_validator_move_pawn():
+    result = ['>> Testing Move Pawn']
+    chess_validator = ChessValidator()
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|               |
+5|               |
+4|               |
+3|               |
+2|p p p p p p p p|
+1|r n b q k b n r|
+""")
+    
+    from_string = 'a2'
+    to_string = 'a3'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn one step',
+            line_number(),
+            Expect.TRUE))
+
+    # ------
+    
+    to_string = 'a4'
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn two steps',
+            line_number(),
+            Expect.TRUE))
+
+    # ------
+
+    from_string = 'a7'
+    to_string = 'a6'
+    active_player = 1
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn one step (black team)',
+            line_number(),
+            Expect.TRUE))
+
+    # ------
+    
+    to_string = 'a5'
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn two steps (black team)',
+            line_number(),
+            Expect.TRUE))
+
+    # ------
+    
+    from_string = 'a2'
+    to_string = 'a5'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn too far',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+    
+    from_string = 'a2'
+    to_string = 'b3'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn diagonal even though there is no enemy',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+    
+    from_string = 'a2'
+    to_string = 'b5'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn somewhere invalid',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P   P P P|
+6|               |
+5|        P      |
+4|      p        |
+3|               |
+2|p p p   p p p p|
+1|r n b q k b n r|
+""")
+    
+    from_string = 'd4'
+    to_string = 'e5'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn onto enemy',
+            line_number(),
+            Expect.TRUE))
+
+    # ------
+
+    to_string = 'c5'
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn diagonal without enemy',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+
+    from_string = 'e5'
+    to_string = 'd4'
+    active_player = 1
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn diagonal onto enemy (black team)',
+            line_number(),
+            Expect.TRUE))
+
+    # ------
+
+    to_string = 'e6'
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn backwards (black team)',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+
+    to_string = 'e7'
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn two steps backwards (black team)',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+
+    to_string = 'd3'
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn backwards',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+
+    to_string = 'd3'
+    active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_move(
+            board, from_string, to_string, active_player),
+            'Drawing pawn backwards',
+            line_number(),
+            Expect.FALSE))
+
+    # ------
+
+    result.append('> Finished')
+    return result
+
 '''
 def testing_chess_validator_template():
     result = ['>> Testing Move Rook']
@@ -822,4 +1036,4 @@ if __name__ == '__main__':
     run_test(testing_chess_validator_move_bishop, shorten)
     run_test(testing_chess_validator_move_queen, shorten)
     run_test(testing_chess_validator_move_king, shorten)
-
+    run_test(testing_chess_validator_move_pawn, shorten)
