@@ -148,7 +148,6 @@ class ChessValidator():
                         return False
 
         elif figure in ['n', 'N']: # White Knight
-            # TODO: Validate Knight
             print('Figure is n')
             # The knight can go two steps in one direction and one step
             # in the perpendicular direction
@@ -195,7 +194,51 @@ class ChessValidator():
 
         elif figure in ['q', 'Q']: # Queen
             # TODO: Validate Queen
+            # The queen is a combination of the rook and the bishop so everything is just
+            # split up into two geater ifs and then the source of the rook and the bishop
+            # is copied down there
             print('Figure is q/Q')
+            # If the columns and destinations aren't the same its a bishop move (or invalid)
+            if (self.from_col != self.to_col and
+                self.from_row != self.to_row):
+                # Check whether it is actually a rook move - if not mark as invalid
+                if (abs(ord(self.from_col) - ord(self.to_col)) !=
+                    abs(self.from_row - self.to_row)):
+                    return False
+
+                col_difference = ord(self.to_col) - ord(self.from_col)
+                row_difference = self.to_row - self.from_row
+
+                if row_difference > 0: row_difference -= 1
+                else: row_difference += 1
+                if col_difference > 0: col_difference -= 1
+                else: col_difference += 1
+
+                while row_difference != 0:
+                    if self.board[
+                            chr(ord(self.from_col) + col_difference)][
+                                    self.from_row + row_difference] != ' ':
+                        return False
+
+                    if row_difference > 0: row_difference -= 1
+                    else: row_difference += 1
+                    if col_difference > 0: col_difference -= 1
+                    else: col_difference += 1
+            
+            # Otherwise its a rook move
+            else:
+                if self.from_col == self.to_col:
+                    smaller, greater = self.max_out_of_two(self.from_row, self.to_row)
+                    for i in range(1, greater - smaller):
+                        if self.board[self.from_col][smaller + i] != ' ':
+                            return False
+
+                elif self.from_row == self.to_row:
+                    smaller, greater = self.max_out_of_two(self.from_col, self.to_col)
+                    # Go trough all but the latest as this one could be a figure
+                    for i in range(1, ord(greater) - ord(smaller)):
+                        if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
+                            return False
 
         elif figure in ['k', 'K']: # King
             # TODO: Validate King
