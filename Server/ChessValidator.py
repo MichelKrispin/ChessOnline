@@ -147,17 +147,51 @@ class ChessValidator():
                     if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
                         return False
 
-        elif figure in ['b', 'B']: # Bishop
-            # TODO: Validate Bishop
-            # The difference between the columns and the rows has to be the same
-            # because the Bishop is allowed to walk in diagonal lines
-            print('Figure is b/B')
-            if ord(self.from_col) - ord(self.to_col) != self.from_row - self.to_row:
-                return False
-
         elif figure in ['n', 'N']: # White Knight
             # TODO: Validate Knight
             print('Figure is n')
+            # The knight can go two steps in one direction and one step
+            # in the perpendicular direction
+            # This means the difference between source and destination column
+            # has to be 1 or 2. Same for the rows.
+            # If the column difference is 1 the row difference has to be 2.
+            # So the addition of the absolute difference has to be 3. Always.
+            # Otherwise its not a valid move.
+            col_difference = abs(ord(self.to_col) - ord(self.from_col))
+            row_difference = abs(self.to_row - self.from_row)
+            if col_difference + row_difference != 3:
+                return False
+
+        elif figure in ['b', 'B']: # Bishop
+            # The difference between the columns and the rows has to be the same
+            # because the Bishop is allowed to walk in diagonal lines
+            print('Figure is b/B')
+            if (abs(ord(self.from_col) - ord(self.to_col)) !=
+                abs(self.from_row - self.to_row)):
+                return False
+
+            # Then the only thing to check is whether there is some figure in between
+            # as the destination spot can't be a king or any same team figure etc.
+            col_difference = ord(self.to_col) - ord(self.from_col)
+            row_difference = self.to_row - self.from_row
+
+            # Decrement them once so the destincation spot is skipped
+            if row_difference > 0: row_difference -= 1
+            else: row_difference += 1
+            if col_difference > 0: col_difference -= 1
+            else: col_difference += 1
+            # As row and column difference grow equally this could also be col_difference
+            while row_difference != 0:
+                if self.board[
+                        chr(ord(self.from_col) + col_difference)][
+                                self.from_row + row_difference] != ' ':
+                    return False
+
+                # Then update the indices
+                if row_difference > 0: row_difference -= 1
+                else: row_difference += 1
+                if col_difference > 0: col_difference -= 1
+                else: col_difference += 1
 
         elif figure in ['q', 'Q']: # Queen
             # TODO: Validate Queen
