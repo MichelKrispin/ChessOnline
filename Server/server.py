@@ -98,7 +98,7 @@ def exit_server(signum, frame):
 
 def parse_arguments():
     """
-    Parse the command line arguments if there are any
+    Parse the command line arguments if there are any.
     """
     parser = argparse.ArgumentParser(description='Start a chess game server.')
     # Add the port argument
