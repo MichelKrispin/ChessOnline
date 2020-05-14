@@ -1,5 +1,6 @@
 class ChessValidator():
-    def __init__(self):
+    def __init__(self, verbose=True):
+        self.verbose = verbose
         self.columns = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
 
     def validate_move(self, board, from_string, to_string, active_player):
@@ -45,21 +46,21 @@ class ChessValidator():
 
         # - If there is no figure of the own team on the source spot
         if not self.validate_figure_from_active_team():
-            print('validate_figure_from_active_team failed')
+            if self.verbose: print('validate_figure_from_active_team failed')
             return False
 
         # - If there is already a figure of the from team
         if not self.validate_from_same_team_or_enemy_king():
-            print('validate_from_same_team_or_enemy_king failed')
+            if self.verbose: print('validate_from_same_team_or_enemy_king failed')
             return False
 
         # - If the destination is allowed by the figure type
         error = self.validate_figure_type_in_range()
         if error:
-            print(f'Figure is not allowed to go there: {error}')
+            if self.verbose: print(f'Figure is not allowed to go there: {error}')
             return False
 
-        print("Validator -> Valid move")
+        if self.verbose: print("Validator -> Valid move")
         return True
 
     def validate_figure_from_active_team(self):
@@ -128,7 +129,6 @@ class ChessValidator():
         if figure in ['r', 'R']: # Rook
             # Rook is allowed to go along the column and rows
             # So either the columns or the rows must be the same
-            print('Figure is r/R')
             if (self.from_col != self.to_col and
                 self.from_row != self.to_row):
                 return 'Rook - only allowed to go straight'
@@ -167,7 +167,6 @@ class ChessValidator():
         elif figure in ['b', 'B']: # Bishop
             # The difference between the columns and the rows has to be the same
             # because the Bishop is allowed to walk in diagonal lines
-            print('Figure is b/B')
             if (abs(ord(self.from_col) - ord(self.to_col)) !=
                 abs(self.from_row - self.to_row)):
                 return 'Bishop - Only allowed to go diagonal'
@@ -196,11 +195,9 @@ class ChessValidator():
                 else: col_difference += 1
 
         elif figure in ['q', 'Q']: # Queen
-            # TODO: Validate Queen
             # The queen is a combination of the rook and the bishop so everything is just
             # split up into two geater ifs and then the source of the rook and the bishop
             # is copied down there
-            print('Figure is q/Q')
             # If the columns and destinations aren't the same its a bishop move (or invalid)
             if (self.from_col != self.to_col and
                 self.from_row != self.to_row):
@@ -247,7 +244,6 @@ class ChessValidator():
             # The king is only allowed to do one step.
             # So the differences from new to old columns can only
             # be 1 or 0. Otherwise the turn is invalid.
-            print('Figure is k/K')
             col_difference = abs(ord(self.to_col) - ord(self.from_col))
             row_difference = abs(self.to_row - self.from_row)
             if col_difference > 1 or row_difference > 1:
@@ -271,7 +267,6 @@ class ChessValidator():
         # The unique one is p/P because it has unique
         # patterns for each team i.e. going downwards/upwards
         elif figure in ['p', 'P']: # White Pawn
-            print('Figure is p/P')
             start_row = 1 if figure == 'p' else 6 # Default start row
             multiplier = 1 if figure == 'p' else (-1) # Going up or down
 
