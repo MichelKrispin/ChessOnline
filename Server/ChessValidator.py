@@ -54,8 +54,9 @@ class ChessValidator():
             return False
 
         # - If the destination is allowed by the figure type
-        if not self.validate_figure_type_in_range():
-            print('validate_figure_type_in_range failed')
+        error = self.validate_figure_type_in_range()
+        if error:
+            print(f'Figure is not allowed to go there: {error}')
             return False
 
         print("Validator -> Valid move")
@@ -114,6 +115,8 @@ class ChessValidator():
         """
         Validates whether the figure is allowed to go to that position.
         E.g. a King is only allowed to go one step away from his position.
+        The function returns either a string indicating why the figure
+        could not go there or None.
         """
         # TODO: Validate if figure type goes to the correct destination
 
@@ -128,7 +131,7 @@ class ChessValidator():
             print('Figure is r/R')
             if (self.from_col != self.to_col and
                 self.from_row != self.to_row):
-                return False
+                return 'Rook - only allowed to go straight'
             
             # Then there can't be something in between
             # So go trough the whole row and check whether there is something in between
@@ -137,7 +140,7 @@ class ChessValidator():
                 # Go trough all but the latest as this one could be a figure
                 for i in range(1, greater - smaller):
                     if self.board[self.from_col][smaller + i] != ' ':
-                        return False
+                        return 'Rook - Someone in between (column)'
 
             # Otherwise go trough the whole column
             elif self.from_row == self.to_row:
@@ -145,7 +148,7 @@ class ChessValidator():
                 # Go trough all but the latest as this one could be a figure
                 for i in range(1, ord(greater) - ord(smaller)):
                     if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
-                        return False
+                        return 'Rook - Someone in between (row)'
 
         elif figure in ['n', 'N']: # White Knight
             print('Figure is n')
@@ -159,7 +162,7 @@ class ChessValidator():
             col_difference = abs(ord(self.to_col) - ord(self.from_col))
             row_difference = abs(self.to_row - self.from_row)
             if col_difference + row_difference != 3:
-                return False
+                return 'Knight - Not going two steps then sideways'
 
         elif figure in ['b', 'B']: # Bishop
             # The difference between the columns and the rows has to be the same
@@ -167,7 +170,7 @@ class ChessValidator():
             print('Figure is b/B')
             if (abs(ord(self.from_col) - ord(self.to_col)) !=
                 abs(self.from_row - self.to_row)):
-                return False
+                return 'Bishop - Only allowed to go diagonal'
 
             # Then the only thing to check is whether there is some figure in between
             # as the destination spot can't be a king or any same team figure etc.
@@ -184,7 +187,7 @@ class ChessValidator():
                 if self.board[
                         chr(ord(self.from_col) + col_difference)][
                                 self.from_row + row_difference] != ' ':
-                    return False
+                    return 'Bishop - Someone in between'
 
                 # Then update the indices
                 if row_difference > 0: row_difference -= 1
@@ -201,10 +204,10 @@ class ChessValidator():
             # If the columns and destinations aren't the same its a bishop move (or invalid)
             if (self.from_col != self.to_col and
                 self.from_row != self.to_row):
-                # Check whether it is actually a rook move - if not mark as invalid
+                # Check whether it is actually a bishop move - if not mark as invalid
                 if (abs(ord(self.from_col) - ord(self.to_col)) !=
                     abs(self.from_row - self.to_row)):
-                    return False
+                    return 'Queen - Only allowed to go straight or diagonal'
 
                 col_difference = ord(self.to_col) - ord(self.from_col)
                 row_difference = self.to_row - self.from_row
@@ -218,7 +221,7 @@ class ChessValidator():
                     if self.board[
                             chr(ord(self.from_col) + col_difference)][
                                     self.from_row + row_difference] != ' ':
-                        return False
+                        return 'Queen - Someone in between (diagonal)'
 
                     if row_difference > 0: row_difference -= 1
                     else: row_difference += 1
@@ -231,14 +234,14 @@ class ChessValidator():
                     smaller, greater = self.max_out_of_two(self.from_row, self.to_row)
                     for i in range(1, greater - smaller):
                         if self.board[self.from_col][smaller + i] != ' ':
-                            return False
+                            return 'Queen - Someone in between (column)'
 
                 elif self.from_row == self.to_row:
                     smaller, greater = self.max_out_of_two(self.from_col, self.to_col)
                     # Go trough all but the latest as this one could be a figure
                     for i in range(1, ord(greater) - ord(smaller)):
                         if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
-                            return False
+                            return 'Queen - Someone in between (row)'
 
         elif figure in ['k', 'K']: # King
             # The king is only allowed to do one step.
@@ -248,7 +251,7 @@ class ChessValidator():
             col_difference = abs(ord(self.to_col) - ord(self.from_col))
             row_difference = abs(self.to_row - self.from_row)
             if col_difference > 1 or row_difference > 1:
-                return False
+                return 'King - Only allowed to go one step'
             
             enemy_king = 'k' if figure == 'K' else 'K'
             # If the king is stepping towards the enemy king the move is invalid
@@ -259,7 +262,7 @@ class ChessValidator():
                         if self.board[
                             chr(ord(self.to_col) + col_iterator)][
                                 self.to_row + row_iterator] == enemy_king:
-                                return False
+                                return 'King - Next to new position is the enemy king'
                     # If we except an IndexError ignore as we would then ask
                     # for a spot outside of the board
                     except IndexError:
@@ -278,28 +281,28 @@ class ChessValidator():
             # Move is sideways
             if col_difference > 0:
                 if col_difference > 1: # too far
-                    return False
+                    return 'Pawn - Going too far sideways'
                 # Using multiplier as white team goes up (1) and black team goes down (-1)
                 if multiplier * row_difference != 1: # too far off
-                    return False
+                    return 'Pawn - Only allowed to go one step diagonal'
                 
                 # Then the move is one step diagonal (only allowed if enemy is there)
                 if self.board[self.to_col][self.to_row] == ' ':
-                    return False
+                    return 'Pawn - Only allowed to step diagonal if there is an enemy'
             
             # Otherwise its just on the row
             else:
                 # If going more than one step
                 if multiplier * row_difference > 1:
                     if multiplier * row_difference > 2: # too far
-                        return False
+                        return 'Pawn - Stepping too far'
                     elif self.from_row != start_row: # two steps only from start
-                        return False
+                        return 'Pawn - Two steps are only allowed from the start row'
                 # Backwards is not allowed
                 elif multiplier * row_difference < 0: 
-                    return False
+                    return 'Pawn - Not allowed to step backwards'
 
-        return True
+        return None
 
     def check_for_check(self):
         """
@@ -307,6 +310,7 @@ class ChessValidator():
         This would mean the moves he can do aren't the same as if the king
         wouldn't be in danger.
         """
+        return False
 
     def check_mate(self):
         """
