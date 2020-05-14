@@ -692,87 +692,66 @@ def testing_chess_validator_move_pawn():
     from_string = 'a2'
     to_string = 'a3'
     active_player = 0
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn one step',
-            line_number(),
-            Expect.TRUE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn one step',
+        Expect.TRUE))
 
     # ------
     
     to_string = 'a4'
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn two steps',
-            line_number(),
-            Expect.TRUE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn two steps',
+        Expect.TRUE))
 
     # ------
 
     from_string = 'a7'
     to_string = 'a6'
     active_player = 1
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn one step (black team)',
-            line_number(),
-            Expect.TRUE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn one step (black team)',
+        Expect.TRUE))
 
     # ------
     
     to_string = 'a5'
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn two steps (black team)',
-            line_number(),
-            Expect.TRUE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn two steps (black team)',
+        Expect.TRUE))
 
     # ------
     
     from_string = 'a2'
     to_string = 'a5'
     active_player = 0
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn too far',
-            line_number(),
-            Expect.FALSE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn too far',
+        Expect.FALSE))
 
     # ------
     
     from_string = 'a2'
     to_string = 'b3'
     active_player = 0
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn diagonal even though there is no enemy',
-            line_number(),
-            Expect.FALSE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn diagonal even though there is no enemy',
+        Expect.FALSE))
 
     # ------
     
     from_string = 'a2'
     to_string = 'b5'
     active_player = 0
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn somewhere invalid',
-            line_number(),
-            Expect.FALSE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn somewhere invalid',
+        Expect.FALSE))
 
     # ------
 
@@ -790,82 +769,52 @@ def testing_chess_validator_move_pawn():
     from_string = 'd4'
     to_string = 'e5'
     active_player = 0
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn onto enemy',
-            line_number(),
-            Expect.TRUE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn onto enemy',
+        Expect.TRUE))
 
     # ------
 
     to_string = 'c5'
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn diagonal without enemy',
-            line_number(),
-            Expect.FALSE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn diagonal without enemy',
+        Expect.FALSE))
 
     # ------
 
     from_string = 'e5'
     to_string = 'd4'
     active_player = 1
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn diagonal onto enemy (black team)',
-            line_number(),
-            Expect.TRUE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn diagonal onto enemy (black team)',
+        Expect.TRUE))
 
     # ------
 
     to_string = 'e6'
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn backwards (black team)',
-            line_number(),
-            Expect.FALSE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn backwards (black team)',
+        Expect.FALSE))
 
     # ------
 
     to_string = 'e7'
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn two steps backwards (black team)',
-            line_number(),
-            Expect.FALSE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn two steps backwards (black team)',
+        Expect.FALSE))
 
     # ------
 
     to_string = 'd3'
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn backwards',
-            line_number(),
-            Expect.FALSE))
-
-    # ------
-
-    to_string = 'd3'
-    active_player = 0
-    with suppress_stdout():
-        result.append(test_result(
-            chess_validator.validate_move(
-            board, from_string, to_string, active_player),
-            'Drawing pawn backwards',
-            line_number(),
-            Expect.FALSE))
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn backwards',
+        Expect.FALSE))
 
     # ------
 
