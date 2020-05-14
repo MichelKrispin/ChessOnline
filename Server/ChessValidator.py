@@ -241,7 +241,6 @@ class ChessValidator():
                             return False
 
         elif figure in ['k', 'K']: # King
-            # TODO: Validate King
             # The king is only allowed to do one step.
             # So the differences from new to old columns can only
             # be 1 or 0. Otherwise the turn is invalid.
@@ -253,19 +252,44 @@ class ChessValidator():
 
         # The unique one is p/P because it has unique
         # patterns for each team i.e. going downwards/upwards
-        elif figure == 'p': # White Pawn
+        elif figure in ['p', 'P']: # White Pawn
             # TODO: Validate white team pawn
-            print('Figure is p')
+            print('Figure is p/P')
+            start_row = 1 if figure == 'p' else 6 # Default start row
+            multiplier = 1 if figure == 'p' else (-1) # Going up or down
 
-        elif figure == 'P': # Black Pawn
-            # TODO: Validate black team pawn
-            print('Figure is P')
+            col_difference = abs(ord(self.to_col) - ord(self.from_col))
+            row_difference = self.to_row - self.from_row
+
+            # Move is sideways
+            if col_difference > 0:
+                if col_difference > 1: # too far
+                    return False
+                # Using multiplier as white team goes up (1) and black team goes down (-1)
+                if multiplier * row_difference != 1: # too far off
+                    return False
+                
+                # Then the move is one step diagonal (only allowed if enemy is there)
+                if self.board[self.to_col][self.to_row] == ' ':
+                    return False
+            
+            # Otherwise its just on the row
+            else:
+                # If going more than one step
+                if multiplier * row_difference > 1:
+                    if multiplier * row_difference > 2: # too far
+                        return False
+                    elif self.from_row != start_row: # two steps only from start
+                        return False
+                # Backwards is not allowed
+                elif multiplier * row_difference < 0: 
+                    return False
 
         return True
 
     def check_mate(self):
         """
-        Checks whether there is a checkmate
+        Checks whether there is a checkmate.
         """
         # TODO: Check for checkmate
         return False
