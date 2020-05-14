@@ -249,11 +249,25 @@ class ChessValidator():
             row_difference = abs(self.to_row - self.from_row)
             if col_difference > 1 or row_difference > 1:
                 return False
+            
+            enemy_king = 'k' if figure == 'K' else 'K'
+            # If the king is stepping towards the enemy king the move is invalid
+            for col_iterator in [-1, 0, 1]:
+                for row_iterator in [-1, 0, 1]:
+                    # We can look all places as we are just looking for the enemy king
+                    try:
+                        if self.board[
+                            chr(ord(self.to_col) + col_iterator)][
+                                self.to_row + row_iterator] == enemy_king:
+                                return False
+                    # If we except an IndexError ignore as we would then ask
+                    # for a spot outside of the board
+                    except IndexError:
+                        pass
 
         # The unique one is p/P because it has unique
         # patterns for each team i.e. going downwards/upwards
         elif figure in ['p', 'P']: # White Pawn
-            # TODO: Validate white team pawn
             print('Figure is p/P')
             start_row = 1 if figure == 'p' else 6 # Default start row
             multiplier = 1 if figure == 'p' else (-1) # Going up or down
@@ -286,6 +300,13 @@ class ChessValidator():
                     return False
 
         return True
+
+    def check_for_check(self):
+        """
+        Checks whether the active player is currently in check.
+        This would mean the moves he can do aren't the same as if the king
+        wouldn't be in danger.
+        """
 
     def check_mate(self):
         """
