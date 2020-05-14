@@ -56,7 +56,7 @@ class ChessBoard():
                 self.board, from_string, to_string, active_player):
             return ChessMove.INVALID_MOVE
 
-        if self.chess_validator.check_mate():
+        if self.chess_validator.check_mate:
             return ChessMove.CHECK_MATE
         elif self.chess_validator.stale_mate():
             return ChessMove.STALE_MATE

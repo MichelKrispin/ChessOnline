@@ -7,7 +7,7 @@ import argparse
 
 from Chess import ChessGame
 
-HOST, PORT = '', 30123
+HOST, PORT = '127.0.0.1', 30123
 
 def start_server(verbose=True):
     """

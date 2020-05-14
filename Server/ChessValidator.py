@@ -2,6 +2,23 @@ class ChessValidator():
     def __init__(self, verbose=True):
         self.verbose = verbose
         self.columns = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
+        self.check_mate = False
+        # Figure for the check checking 
+        # (use it like self.figures[fig][0] = col, ..][1] = row, ..][2] = attacking)
+        """self.figures = {
+            'p': [['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],],
+            'P': [['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],],
+            'r': [['a',0,False],['a',0,False],],
+            'R': [['a',0,False],['a',0,False],],
+            'n': [['a',0,False],['a',0,False],],
+            'N': [['a',0,False],['a',0,False],],
+            'b': [['a',0,False],['a',0,False],],
+            'B': [['a',0,False],['a',0,False],],
+            'q': [['a',0,False],],
+            'Q': [['a',0,False],],
+            'k': [['a',0,False],],
+            'K': [['a',0,False],],
+        }"""
 
     def validate_move(self, board, from_string, to_string, active_player):
         """
@@ -54,11 +71,29 @@ class ChessValidator():
             if self.verbose: print('validate_from_same_team_or_enemy_king failed')
             return False
 
-        # - If the destination is allowed by the figure type
-        error = self.validate_figure_type_in_range()
-        if error:
-            if self.verbose: print(f'Figure is not allowed to go there: {error}')
-            return False
+        # - Check whether this teams king is in check
+        #   If so different rules apply
+        if self.check_for_check():
+            # If the king is in danger check if it can be saved
+            # and if the current move is inside of the saving moves
+            error = not self.validate_king_can_be_saved()
+
+            # If the king can't be saved this team looses - Check mate
+            # The validate_king_can_be_saved function sets this attribute
+            if self.check_mate:
+                return True # Valid move but ChessBoard now checks the check_mate attribute  
+
+            # If it can be saved but the move isn't saving him this results in an error
+            if error:
+                if self.verbose: print(f'Active team in check: {error}')
+                return False
+            # If the move saves him no error is set
+        else:
+            # - If the destination is allowed by the figure type
+            error = self.validate_figure_type_in_range()
+            if error:
+                if self.verbose: print(f'Figure is not allowed to go there: {error}')
+                return False
 
         if self.verbose: print("Validator -> Valid move")
         return True
@@ -111,6 +146,100 @@ class ChessValidator():
                 return False
 
         return True
+
+    def check_for_check(self):
+        """
+        Checks whether the active player is currently in check.
+        This would mean the moves he can do aren't the same as if the king
+        wouldn't be in danger.
+        """
+        # Get the position of the king (use default position first)
+        active_king = 'K' if active_player else 'k'
+        king_col = 'e'
+        king_row = 7 if active_player else 1
+        if self.board[king_col][king_row] != active_king:
+            for col in self.columns:
+                for row in range(8):
+                    if self.board[col][row] == active_king:
+                        king_col = col
+                        king_row = row
+        
+        # Then check all positions from where the King could be attacked whether he is in danger
+        # Set attackers and create an empty list to save them
+        row_col_attacker = ['q', 'r'] if active_player else ['Q', 'R']
+        diagonal_attacker = ['q', 'n'] if active_player else ['Q', 'N']
+        diagonal_offset_bottom = king_row - offset
+        diagonal_offset_top = king_row + offset
+        knight_attacker = 'n' if active_player else 'N'
+        pawn_attacker = 'p' if active_player else 'P'
+        attacker = [] # A list of [col, row] with attackers
+
+        # Asking for as many as possible in one loop
+        for i in range(8):
+            # - Rows
+            if self.board[king_col][i] in row_col_attacker:
+                print('Attacking on a row')
+                attacker.append([king_col, i])
+
+            # - Columns
+            if self.board[chr(ord('a')+i)][king_row] in row_col_attacker:
+                print('Attacking on a column')
+                attacker.append([chr(ord('a')+i), king_row])
+
+            # - Diagonal left bottom to top right
+            try:
+                if self.board[chr(ord('a') + i)][diagonal_offset_bottom + i] in diagonal_attacker:    
+                    print('Attacking on the diagonal (left bottom to top right)')
+                    attacker.append([chr(ord('a') + i), diagonal_offset_bottom + i])
+            except IndexError: # Ignore because its outide of the board
+                pass
+            
+            # - Diagonal left top to bottom right
+            try:
+                if self.board[chr(ord('a') + i)][diagonal_offset_top - i] in diagonal_attacker:
+                    print('Attacking on the diagonal (left top to bottom right)')
+                    attacker.append([chr(ord('a') + i), diagonal_offset_top - i])
+            except IndexError: # Ignore because its outide of the board
+                pass
+            
+            # - Knights
+            knight_indices = [-2, -1, 1, 2, 2, 1, -1, -2]
+            try:
+                if self.board[
+                    chr(ord(king_col) + knight_indices[i])][
+                    king_row + knight_indices[(i+2)%8]] == knight_attacker:
+                        attacker.append(
+                            [ord(king_col) + knight_indices[i]), king_row + knight_indices[(i+2)%8]]
+                        )
+                        print('Attacked by a knight')
+            except IndexError: # Ignore because its outide of the board
+                pass
+
+        # - Pawn
+        pawn_col = king_col - 1 if active_king else king_col + 1
+        try: # Right side
+            if self.board[pawn_col][king_row + 1] == pawn_attacker:
+                    attacker.append([pawn_col, king_row + 1])
+                    print('Attacked by a knight')
+        except IndexError: # Ignore because its outide of the board
+            pass
+
+        try: # Left side
+            if self.board[pawn_col][king_row - 1] == pawn_attacker:
+                    attacker.append([pawn_col, king_row - 1])
+                    print('Attacked by a knight')
+        except IndexError: # Ignore because its outide of the board
+            pass
+
+        return False
+
+    def validate_king_can_be_saved(self):
+        """
+        Checks whether the king can be saved. If so it returns None.
+        Otherwise it set
+        Set self.check_mate = True if the king 
+        """
+        return None
     
     def validate_figure_type_in_range(self):
         """
@@ -296,23 +425,11 @@ class ChessValidator():
                 # Backwards is not allowed
                 elif multiplier * row_difference < 0: 
                     return 'Pawn - Not allowed to step backwards'
+                # Attacking an enemy in front of the pawn is not allowed
+                elif self.board[self.to_col][self.to_row] != ' ':
+                    return 'Pawn - Not allowed to attack enemy in front'
 
         return None
-
-    def check_for_check(self):
-        """
-        Checks whether the active player is currently in check.
-        This would mean the moves he can do aren't the same as if the king
-        wouldn't be in danger.
-        """
-        return False
-
-    def check_mate(self):
-        """
-        Checks whether there is a checkmate.
-        """
-        # TODO: Check for checkmate
-        return False
 
     def stale_mate(self):
         """
