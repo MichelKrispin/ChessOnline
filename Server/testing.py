@@ -10,7 +10,8 @@ import argparse
 """
 # How To
 1. Scroll down to the commented test_..._template method
-2. Copy it and rename it to a meaningful name
+2. Copy it and rename it to a meaningful name.
+   (The name will be used in the ouput)
 3. Fill out the chess board to the testing values
 4. Set new from and to values
 5. Change the text inside the function call to something helpful
@@ -18,7 +19,6 @@ import argparse
    or to Expect.FALSE if you expect the move to be invalid.
 7. Call the new method from the main at the bottom of this file.
 8. Run the file and see whether the test has passed
-
 """
 
 # --------------------
@@ -131,7 +131,7 @@ def testing_chess_validator_move_generic():
     """
     Testing generic stuff such as inputting same position or same team.
     """
-    result = ['>> Testing Generic']
+    result = []
     chess_validator = ChessValidator()
     board = generate_board_from_string("""
 8|R N B Q K B N R|
@@ -181,7 +181,7 @@ def testing_chess_validator_move_generic():
 # Testing the rook
 # ---------------------------
 def testing_chess_validator_move_rook():
-    result = ['>> Testing Move Rook']
+    result = []
     chess_validator = ChessValidator()
     board = generate_board_from_string("""
 8|R N B Q K B N R|
@@ -340,7 +340,7 @@ def testing_chess_validator_move_rook():
 # Testing the knight
 # ---------------------------
 def testing_chess_validator_move_knight():
-    result = ['>> Testing Move Knight']
+    result = []
     chess_validator = ChessValidator()
 
     # ------
@@ -404,7 +404,7 @@ def testing_chess_validator_move_knight():
 # Testing the bishop
 # ---------------------------
 def testing_chess_validator_move_bishop():
-    result = ['>> Testing Move Bishop']
+    result = []
     chess_validator = ChessValidator()
 
     # ------
@@ -584,7 +584,7 @@ def testing_chess_validator_move_bishop():
 # Queen
 # --------------------
 def testing_chess_validator_move_queen():
-    result = ['>> Testing Move Queen']
+    result = []
     chess_validator = ChessValidator()
 
     # ------
@@ -633,7 +633,7 @@ def testing_chess_validator_move_queen():
 # Testing the king
 # --------------------
 def testing_chess_validator_move_king():
-    result = ['>> Testing Move King']
+    result = []
     chess_validator = ChessValidator()
 
     # ------
@@ -730,7 +730,7 @@ def testing_chess_validator_move_king():
 # Pawn
 # --------------------
 def testing_chess_validator_move_pawn():
-    result = ['>> Testing Move Pawn']
+    result = []
     chess_validator = ChessValidator()
 
     # ------
@@ -901,7 +901,7 @@ def testing_chess_validator_move_pawn():
 
 '''
 def testing_chess_validator_template():
-    result = ['>> Testing Move Rook']
+    result = []
     chess_validator = ChessValidator()
 
     # ------
@@ -971,6 +971,10 @@ def run_test(testing_function, shorten):
     """
     Run a test and print its results.
     """
+    # Title capitalizes the first letter of each word
+    test_name = '>> ' + testing_function.__name__.replace('_', ' ').title()
+    print(test_name)
+
     result = testing_function()
     for r in result:
         if shorten:
