@@ -875,6 +875,27 @@ def testing_chess_validator_move_pawn():
 
     # ------
 
+    board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P   P P P|
+6|               |
+5|               |
+4|      p P      |
+3|               |
+2|p p p   p p p p|
+1|r n b q k b n r|
+""")
+    
+    from_string = 'd4'
+    to_string = 'e5'
+    active_player = 0
+    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+        board, from_string, to_string, active_player,
+        'Drawing pawn onto enemy one step sideways (same row)',
+        Expect.FALSE))
+
+    # ------
+
     result.append('> Finished')
     return result
 
