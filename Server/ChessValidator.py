@@ -3,22 +3,6 @@ class ChessValidator():
         self.verbose = verbose
         self.columns = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
         self.check_mate = False
-        # Figure for the check checking 
-        # (use it like self.figures[fig][0] = col, ..][1] = row, ..][2] = attacking)
-        """self.figures = {
-            'p': [['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],],
-            'P': [['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],['a',0,False],],
-            'r': [['a',0,False],['a',0,False],],
-            'R': [['a',0,False],['a',0,False],],
-            'n': [['a',0,False],['a',0,False],],
-            'N': [['a',0,False],['a',0,False],],
-            'b': [['a',0,False],['a',0,False],],
-            'B': [['a',0,False],['a',0,False],],
-            'q': [['a',0,False],],
-            'Q': [['a',0,False],],
-            'k': [['a',0,False],],
-            'K': [['a',0,False],],
-        }"""
 
     def validate_move(self, board, from_string, to_string, active_player):
         """
@@ -154,9 +138,9 @@ class ChessValidator():
         wouldn't be in danger.
         """
         # Get the position of the king (use default position first)
-        active_king = 'K' if active_player else 'k'
+        active_king = 'K' if self.active_player else 'k'
         king_col = 'e'
-        king_row = 7 if active_player else 1
+        king_row = 7 if self.active_player else 1
         if self.board[king_col][king_row] != active_king:
             for col in self.columns:
                 for row in range(8):
@@ -166,57 +150,76 @@ class ChessValidator():
         
         # Then check all positions from where the King could be attacked whether he is in danger
         # Set attackers and create an empty list to save them
-        row_col_attacker = ['q', 'r'] if active_player else ['Q', 'R']
-        diagonal_attacker = ['q', 'n'] if active_player else ['Q', 'N']
-        diagonal_offset_bottom = king_row - offset
-        diagonal_offset_top = king_row + offset
-        knight_attacker = 'n' if active_player else 'N'
-        pawn_attacker = 'p' if active_player else 'P'
-        attacker = [] # A list of [col, row] with attackers
+        row_col_attacker = ['q', 'r'] if self.active_player else ['Q', 'R']
+        diagonal_attacker = ['q', 'n'] if self.active_player else ['Q', 'N']
+        knight_attacker = 'n' if self.active_player else 'N'
+        pawn_attacker = 'p' if self.active_player else 'P'
+        attackers = [] # A list of [col, row] with attackers
 
-        # Asking for as many as possible in one loop
+        # This loop is trying to do as much as possible without a lot of code repition.
+        # It is checking all rows and columns and diagonal parts from the perspective of the king.
+        # So its first going steps right, and down, ..., then diagonally top right, ... and always checks
+        # whether there is an attacker (one of the attackers) at that spot. If there is any other
+        # figure it continues with the next row, column, diagonal etc..
+        # The loop is built up like this:
+        # attacker - The enemy which could attack the king from that position
+        # direction - Right=1, Left=-1, Top=-1, Up=1 (going up is position while down means subtracting)
+        # col_multiplier - If iterating trough a column this is 1, if not 0
+        # row_multiplier - If iterating trough a row this is 1, if not 0
+        for attacker, direction, col_multiplier, row_multiplier in ([
+            (row_col_attacker, 1, 1, 0), # right straight
+            (row_col_attacker, 1, 0, 1), # down straight
+            (row_col_attacker, -1, 1, 0), # left straight
+            (row_col_attacker, -1, 0, 1), # up straight
+            (diagonal_attacker, 1, 1, 1), # right up
+            (diagonal_attacker, 1, 1, -1), # right down
+            (diagonal_attacker, 1, -1, 1), # left up
+            (diagonal_attacker, -1, 1, 1), # left down
+            ]):
+            # Initializing the variables
+            i = direction # Starting position
+            new_col = king_col
+            new_row = king_row
+            inside_board = True
+            # As long as we are inside the board (checks happen directly after updating new values)
+            while inside_board: 
+                # New columns are the kings column + (either 0 if not moving OR iteratorcount)
+                new_col = chr(ord(king_col) + (i * col_multiplier))
+                new_row = king_row + (i * row_multiplier)
+                if (new_col > 'h' or new_col < 'a' or
+                    new_row > 7 or new_row < 0):
+                   inside_board = False
+                   continue
+            
+                # Now check first whether its an enemy
+                if self.board[new_col][new_row] in attacker:
+                    attackers.append([new_col, new_row])
+                    inside_board = False
+                    continue
+
+                # If there is anything else in between the rest isn't important
+                if self.board[new_col][new_row] != ' ':
+                    inside_board = False
+                    continue
+
+                i += direction
+
+        # - Knight
         for i in range(8):
-            # - Rows
-            if self.board[king_col][i] in row_col_attacker:
-                print('Attacking on a row')
-                attacker.append([king_col, i])
-
-            # - Columns
-            if self.board[chr(ord('a')+i)][king_row] in row_col_attacker:
-                print('Attacking on a column')
-                attacker.append([chr(ord('a')+i), king_row])
-
-            # - Diagonal left bottom to top right
-            try:
-                if self.board[chr(ord('a') + i)][diagonal_offset_bottom + i] in diagonal_attacker:    
-                    print('Attacking on the diagonal (left bottom to top right)')
-                    attacker.append([chr(ord('a') + i), diagonal_offset_bottom + i])
-            except IndexError: # Ignore because its outide of the board
-                pass
-            
-            # - Diagonal left top to bottom right
-            try:
-                if self.board[chr(ord('a') + i)][diagonal_offset_top - i] in diagonal_attacker:
-                    print('Attacking on the diagonal (left top to bottom right)')
-                    attacker.append([chr(ord('a') + i), diagonal_offset_top - i])
-            except IndexError: # Ignore because its outide of the board
-                pass
-            
-            # - Knights
             knight_indices = [-2, -1, 1, 2, 2, 1, -1, -2]
             try:
                 if self.board[
                     chr(ord(king_col) + knight_indices[i])][
                     king_row + knight_indices[(i+2)%8]] == knight_attacker:
                         attacker.append(
-                            [ord(king_col) + knight_indices[i]), king_row + knight_indices[(i+2)%8]]
+                            [ord(king_col) + knight_indices[i], king_row + knight_indices[(i+2)%8]]
                         )
                         print('Attacked by a knight')
             except IndexError: # Ignore because its outide of the board
                 pass
 
         # - Pawn
-        pawn_col = king_col - 1 if active_king else king_col + 1
+        pawn_col = chr(ord(king_col) - 1) if active_king else king_col + 1
         try: # Right side
             if self.board[pawn_col][king_row + 1] == pawn_attacker:
                     attacker.append([pawn_col, king_row + 1])
@@ -231,6 +234,9 @@ class ChessValidator():
         except IndexError: # Ignore because its outide of the board
             pass
 
+        # If there are any attacker then its check
+        if len(attackers) > 0:
+            return True
         return False
 
     def validate_king_can_be_saved(self):

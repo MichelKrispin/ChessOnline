@@ -920,6 +920,109 @@ def testing_chess_validator_move_pawn():
     result.append('> Finished')
     return result
 
+# ---------------------------
+# Testing for check
+# ---------------------------
+def testing_chess_validator_check():
+    result = []
+    chess_validator = ChessValidator()
+
+    # ------
+
+    # Fake the board a little
+    chess_validator.board = generate_board_from_string("""
+8|R N B Q K B N R|
+7|P P P P P P P P|
+6|               |
+5|               |
+4|               |
+3|               |
+2|p p p p p p p p|
+1|r n b q k b n r|
+""")
+
+    for activate_player in [0, 1]:
+        chess_validator.active_player = activate_player
+        with suppress_stdout():
+            result.append(test_result(
+                chess_validator.check_for_check(),
+                f'Default board (Player {activate_player})',
+                line_number(),
+                Expect.FALSE))
+
+    # ------
+    # Check for a lot of Rook attacks
+
+    boards = []
+    boards.append(generate_board_from_string("""
+8|  N B Q   B N R|
+7|P P P P P P P P|
+6|               |
+5|        K     r|
+4|R     k        |
+3|               |
+2|p p p p p p p p|
+1|r n b q   b n  |
+""")) # 0
+    boards.append(generate_board_from_string("""
+8|  N B Q   B N R|
+7|P P P P P P P P|
+6|               |
+5|r       K      |
+4|      k       R|
+3|               |
+2|p p p p p p p p|
+1|r n b q   b n  |
+""")) # 1
+    boards.append(generate_board_from_string("""
+8|  N B Q   B N R|
+7|P P P P P P P P|
+6|        r      |
+5|        K      |
+4|      k        |
+3|      R        |
+2|p p p p p p p p|
+1|r n b q   b n  |
+""")) # 2
+    boards.append(generate_board_from_string("""
+8|  N B Q   B N R|
+7|P P P P P P P P|
+6|      R        |
+5|        K      |
+4|      k        |
+3|        r      |
+2|p p p p p p p p|
+1|r n b q   b n  |
+""")) # 3
+    boards.append(generate_board_from_string("""
+8|  N B Q   B N R|
+7|P P P P P P P P|
+6|      R r      |
+5|  r     K     r|
+4|  R   k     R  |
+3|      R r      |
+2|p p p p p p p p|
+1|r n b q   b n  |
+""")) # 4
+
+    board_count = 0
+    for board in boards:
+        chess_validator.board = board
+        for activate_player in [0, 1]:
+            chess_validator.active_player = activate_player
+            with suppress_stdout():
+                result.append(test_result(
+                    chess_validator.check_for_check(),
+                    f'Attacked by rook (Player {activate_player} - Board {board_count})',
+                    line_number(),
+                    Expect.TRUE))
+                
+        board_count += 1
+    # ------
+
+    result.append('> Finished')
+    return result
+
 '''
 def testing_chess_validator_template():
     result = []
@@ -1031,3 +1134,4 @@ if __name__ == '__main__':
     run_test(testing_chess_validator_move_queen, shorten)
     run_test(testing_chess_validator_move_king, shorten)
     run_test(testing_chess_validator_move_pawn, shorten)
+    run_test(testing_chess_validator_check, shorten)
