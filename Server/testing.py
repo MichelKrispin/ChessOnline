@@ -1108,7 +1108,9 @@ def run_test(testing_function, shorten):
                 print('\n' + r)
         else:
             print(r)
-    print('')    
+    print('')
+    global test_counter 
+    test_counter += len(r) - 1 # Minus the > Finished
 
 def parse_arguments():
     """
@@ -1124,6 +1126,9 @@ def parse_arguments():
     return parser.parse_args()
 
 if __name__ == '__main__':
+    global test_counter
+    test_counter = 0
+
     args = parse_arguments()
 
     shorten = True if args.shorten else False
@@ -1135,3 +1140,5 @@ if __name__ == '__main__':
     run_test(testing_chess_validator_move_king, shorten)
     run_test(testing_chess_validator_move_pawn, shorten)
     run_test(testing_chess_validator_check, shorten)
+
+    print(f'Ran {test_counter} tests')
