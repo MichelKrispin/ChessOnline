@@ -746,69 +746,43 @@ def testing_chess_validator_move_pawn():
 1|r n b q k b n r|
 """)
     
-    from_string = 'a2'
-    to_string = 'a3'
+    from_strings = ['a2', 'a2']
+    to_strings = ['a3', 'a4']
     active_player = 0
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Drawing pawn one step',
-        Expect.TRUE))
-
-    # ------
-    
-    to_string = 'a4'
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Drawing pawn two steps',
-        Expect.TRUE))
+    count = 1
+    for i in range(len(from_strings)):
+        result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+            board, from_strings[i], to_strings[i], active_player,
+            f'Drawing pawn {from_strings[i]} to {to_strings[i]} ({count})',
+            Expect.TRUE))
+        count += 1
 
     # ------
 
-    from_string = 'a7'
-    to_string = 'a6'
+    from_strings = ['a7', 'a7']
+    to_strings = ['a6', 'a5']
     active_player = 1
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Drawing pawn one step (black team)',
-        Expect.TRUE))
+    count = 1
+    for i in range(len(from_strings)):
+        result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+            board, from_strings[i], to_strings[i], active_player,
+            f'Drawing pawn {from_strings[i]} to {to_strings[i]} ({count}) (black team)',
+            Expect.TRUE))
+        count += 1
 
     # ------
-    
-    to_string = 'a5'
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Drawing pawn two steps (black team)',
-        Expect.TRUE))
 
-    # ------
-    
-    from_string = 'a2'
-    to_string = 'a5'
+    from_strings = ['a2', 'a2', 'a2']
+    to_strings = ['a5', 'b3', 'b5']
+    descriptions = ['Drawing pawn too far', 'Drawing pawn diagonal without enemy', 'Drawing pawn somewhere']
     active_player = 0
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Drawing pawn too far',
-        Expect.FALSE))
-
-    # ------
-    
-    from_string = 'a2'
-    to_string = 'b3'
-    active_player = 0
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Drawing pawn diagonal even though there is no enemy',
-        Expect.FALSE))
-
-    # ------
-    
-    from_string = 'a2'
-    to_string = 'b5'
-    active_player = 0
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Drawing pawn somewhere invalid',
-        Expect.FALSE))
+    count = 1
+    for i in range(len(from_strings)):
+        result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+            board, from_strings[i], to_strings[i], active_player,
+            descriptions[i] + f'({from_strings[i]} to {to_strings[i]} - {count})',
+            Expect.FALSE))
+        count += 1
 
     # ------
 
@@ -921,7 +895,43 @@ def testing_chess_validator_move_pawn():
     return result
 
 # ---------------------------
-# Testing for check
+# Testing for check moves
+# ---------------------------
+def testing_chess_validator_check_moves():
+    result = []
+    chess_validator = ChessValidator()
+
+    # ------
+
+    board = generate_board_from_string("""
+8|  N B   K B N  |
+7|P P P P P P P P|
+6|        Q      |
+5|        n      |
+4|R   b   k p   R|
+3|               |
+2|p p p p p   p p|
+1|r n   q   b   r|
+""")
+
+    from_strings = ['f4', 'c4', 'c4', 'e5']
+    to_strings = ['f5', 'd5', 'a6', 'c6']
+    active_player = 0
+    count = 1
+    for i in range(len(from_strings)):
+        result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+            board, from_strings[i], to_strings[i], active_player,
+            f'Drawing figure {from_strings[i]} to {to_strings[i]} ({count}) and exposing attack of own king',
+            Expect.FALSE))
+        count += 1
+
+    # ------
+
+    result.append('> Finished')
+    return result
+
+# ---------------------------
+# Testing for check for check
 # ---------------------------
 def testing_chess_validator_check():
     result = []
@@ -949,6 +959,28 @@ def testing_chess_validator_check():
                 f'Default board (Player {activate_player})',
                 line_number(),
                 Expect.FALSE))
+
+    # ------
+    # Attack from behind other player
+
+    chess_validator.board = generate_board_from_string("""
+8|  N B   K   N  |
+7|P P P P Q P P P|
+6|               |
+5|        b      |
+4|R   n   k p   R|
+3|               |
+2|p p p p p p p p|
+1|r n b q     n B|
+""")
+
+    chess_validator.active_player = 0
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.check_for_check(),
+            f'Attack from behind other player',
+            line_number(),
+            Expect.FALSE))
 
     # ------
     # Check for a lot of Rook attacks
@@ -1040,15 +1072,15 @@ def testing_chess_validator_template():
 2|p p p p p p p p|
 1|r n b q k b n r|
 """)
-
-    from_string = 'a1'
+    
+    from_strings = ['a2', 'a2']
+    to_strings = ['a3', 'a4']
     active_player = 0
-    to_strings = ['e6', 'd6', 'd5', 'd4', 'e4', 'f4', 'f5', 'f6']
     count = 1
-    for to_string in to_strings:
+    for i in range(len(from_strings)):
         result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-            board, from_string, to_string, active_player,
-            f'Drawing figure a1 to {to_string} ({count})',
+            board, from_strings[i], to_strings[i], active_player,
+            f'Drawing pawn {from_string[i]} to {to_strings[i]} ({count})',
             Expect.TRUE))
         count += 1
 
@@ -1140,5 +1172,6 @@ if __name__ == '__main__':
     run_test(testing_chess_validator_move_king, shorten)
     run_test(testing_chess_validator_move_pawn, shorten)
     run_test(testing_chess_validator_check, shorten)
+    run_test(testing_chess_validator_check_moves, shorten)
 
     print(f'Ran {test_counter} tests')

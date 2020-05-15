@@ -59,26 +59,27 @@ class ChessValidator():
         #   If so different rules apply
         if self.check_for_check():
             # If the king is in danger check if it can be saved
-            # and if the current move is inside of the saving moves
-            error = not self.validate_king_can_be_saved()
-
             # If the king can't be saved this team looses - Check mate
-            # The validate_king_can_be_saved function sets this attribute
-            if self.check_mate:
-                return True # Valid move but ChessBoard now checks the check_mate attribute  
+            # The validate_king_can_be_saved function sets check_mate to True
+            if not self.validate_king_can_be_saved():
+                # Return that this is a valid move but ChessBoard (caller) now checks the check_mate attribute  
+                return True
 
-            # If it can be saved but the move isn't saving him this results in an error
-            if error:
-                if self.verbose: print(f'Active team in check: {error}')
-                return False
-            # If the move saves him no error is set
-        else:
-            # - If the destination is allowed by the figure type
-            error = self.validate_figure_type_in_range()
-            if error:
-                if self.verbose: print(f'Figure is not allowed to go there: {error}')
-                return False
+        # If it can be saved set the current move, check again for check and 
+        # if it is still check this move won't save the king. Hence this move is invalid
+        error = self.validate_figure_type_in_range()
+        if error:
+            if self.verbose: print(f'Figure is not allowed to go there: {error}')
+            return False
 
+        # If there is no error apply the current move to self.board and check_for_check.
+        # If is returns true its invalid
+        self.make_move()
+        if self.check_for_check():
+            self.make_move(undo=True) # Needs to be here as the make move alters the board reference
+            return False
+        self.make_move(undo=True)
+        # If the move won't get the active team in a check its alright
         if self.verbose: print("Validator -> Valid move")
         return True
 
@@ -451,3 +452,27 @@ class ChessValidator():
         if first < second:
             return first, second
         return second, first
+
+    def make_move(self, undo=False):
+        """
+        A helper function for making a move which updates self.board.
+        It uses the self.to_col etc. attributes to make the move.
+        If undo is True it uses the self.to_col as the source and the from as the destination
+        to undo a move.
+        """
+        if not undo:
+            # Save the old destination figure for the undo operation
+            self.old_destination_figure = self.board[self.to_col][self.to_row]
+            figure = self.board[self.from_col][self.from_row]
+            self.board[self.from_col][self.from_row] = ' '
+            self.board[self.to_col][self.to_row] = figure
+
+        else:
+            try:
+                figure = self.board[self.to_col][self.to_row]
+                self.board[self.to_col][self.to_row] = self.old_destination_figure
+                self.board[self.from_col][self.from_row] = figure
+            except:
+                print('Error undoing a move inside the ChessValidator')
+            
+
