@@ -1005,14 +1005,24 @@ def testing_chess_validator_check():
 1|r n b q   b n  |
 """)) # 3
     boards.append(generate_board_from_string("""
-8|  N B Q   B N R|
+8|  N B Q   B N  |
 7|P P P P P P P P|
 6|      R r      |
 5|  r     K     r|
 4|  R   k     R  |
 3|      R r      |
 2|p p p p p p p p|
-1|r n b q   b n  |
+1|  n b q   b n  |
+""")) # 4
+    boards.append(generate_board_from_string("""
+8|R N B     B N R|
+7|P P P P P P P P|
+6|               |
+5|        K     q|
+4|      k     Q  |
+3|               |
+2|p p p p p p p p|
+1|r n b q   b n r|
 """)) # 4
 
     board_count = 0
@@ -1023,12 +1033,130 @@ def testing_chess_validator_check():
             with suppress_stdout():
                 result.append(test_result(
                     chess_validator.check_for_check(),
-                    f'Attacked by rook (Player {activate_player} - Board {board_count})',
+                    f'Attacked by rook/queen (Player {activate_player} - Board {board_count})',
+                    line_number(),
+                    Expect.TRUE))
+                
+        board_count += 1
+
+    # ------
+    # Checking the Queen and the Bishop
+    boards = []
+    boards.append(generate_board_from_string("""
+8|R N B     B N R|
+7|P P P P P P P P|
+6|  Q     K      |
+5|               |
+4|      k     q  |
+3|               |
+2|p p p p p p p p|
+1|r n b     b n r|
+""")) # 0
+    boards.append(generate_board_from_string("""
+8|R N B     B N R|
+7|P P P P P P P P|
+6|        K      |
+5|               |
+4|      k        |
+3|  q     Q      |
+2|p p p p p p p p|
+1|r n b     b n r|
+""")) # 1
+    boards.append(generate_board_from_string("""
+8|R N   Q   B N R|
+7|P P P P P P P P|
+6|  B     K      |
+5|               |
+4|      k     b  |
+3|               |
+2|p p p p p p p p|
+1|r n b q     n r|
+""")) # 2
+
+    board_count = 0
+    for board in boards:
+        chess_validator.board = board
+        for activate_player in [0, 1]:
+            chess_validator.active_player = activate_player
+            with suppress_stdout():
+                result.append(test_result(
+                    chess_validator.check_for_check(),
+                    f'Attacked by bishop/queen (Player {activate_player} - Board {board_count})',
                     line_number(),
                     Expect.TRUE))
                 
         board_count += 1
     # ------
+
+
+    result.append('> Finished')
+    return result
+
+# ---------------------------
+# Testing for king can be saved
+# ---------------------------
+def testing_chess_validator_king_can_be_saved():
+    result = []
+    chess_validator = ChessValidator()
+
+    # ------
+
+    board = generate_board_from_string("""
+8|R N B Q K B N  |
+7|P P P P P P P P|
+6|               |
+5|        k     R|
+4|               |
+3|               |
+2|p p p p p p p p|
+1|r n b q   b n r|
+""")
+    
+    chess_validator.to_col = 'a'
+    chess_validator.to_row = 3
+    chess_validator.from_col = 'a'
+    chess_validator.from_row = 2
+    chess_validator.board = board
+    chess_validator.active_player = 0
+    chess_validator.attackers = [['h', 4]]
+    with suppress_stdout():
+        result.append(test_result( chess_validator.validate_king_can_be_saved(),
+            f'Attacked by one Rook',
+            line_number(),
+            Expect.TRUE))
+
+    # Check the to and from spots 
+    with suppress_stdout():
+        result.append(test_result(
+            (chess_validator.to_col == 'a' and chess_validator.to_row == 3 and
+            chess_validator.from_col == 'a' and chess_validator.from_row == 2 and
+            chess_validator.attackers == [['h', 4]]),
+            f'Correctly restoring the old spots',
+            line_number(),
+            Expect.TRUE))
+
+    # ------
+    # Now check for when he can't escape 
+
+    board = generate_board_from_string("""
+8|  N B       N  |
+7|P P P P P P P P|
+6|R              |
+5|    Q   k     R|
+4|               |
+3|      B K      |
+2|p p p p p p p p|
+1|r n b q   b n r|
+""")
+
+    chess_validator.board = board
+    chess_validator.attackers = [['h', 4], ['c', 4]]
+    with suppress_stdout():
+        result.append(test_result(
+            chess_validator.validate_king_can_be_saved(),
+            'Check mate by R,Q,B,K',
+            line_number(),
+            Expect.FALSE))
 
     result.append('> Finished')
     return result
@@ -1153,5 +1281,6 @@ if __name__ == '__main__':
     run_test(testing_chess_validator_move_pawn, shorten)
     run_test(testing_chess_validator_check, shorten)
     run_test(testing_chess_validator_check_moves, shorten)
+    run_test(testing_chess_validator_king_can_be_saved, shorten)
 
     print(f'Ran {test_counter} tests')

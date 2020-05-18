@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 class ChessValidator():
     def __init__(self, verbose=True):
         self.verbose = verbose
@@ -60,9 +62,9 @@ class ChessValidator():
         if self.check_for_check():
             # If the king is in danger check if it can be saved
             # If the king can't be saved this team looses - Check mate
-            # The validate_king_can_be_saved function sets check_mate to True
             if not self.validate_king_can_be_saved():
                 # Return that this is a valid move but ChessBoard (caller) now checks the check_mate attribute  
+                self.check_mate = True
                 return True
 
         # If it can be saved set the current move, check again for check and 
@@ -152,7 +154,7 @@ class ChessValidator():
         # Then check all positions from where the King could be attacked whether he is in danger
         # Set attackers and create an empty list to save them
         row_col_attacker = ['q', 'r'] if self.active_player else ['Q', 'R']
-        diagonal_attacker = ['q', 'n'] if self.active_player else ['Q', 'N']
+        diagonal_attacker = ['q', 'b'] if self.active_player else ['Q', 'B']
         knight_attacker = 'n' if self.active_player else 'N'
         pawn_attacker = 'p' if self.active_player else 'P'
         attackers = [] # A list of [col, row] with attackers
@@ -194,6 +196,7 @@ class ChessValidator():
             
                 # Now check first whether its an enemy
                 if self.board[new_col][new_row] in attacker:
+                    # This is where the attacker is saved
                     attackers.append([new_col, new_row])
                     inside_board = False
                     continue
@@ -237,16 +240,117 @@ class ChessValidator():
 
         # If there are any attacker then its check
         if len(attackers) > 0:
+            # If there are attacker then save them for the validate_king_can_be_saved function
+            self.attackers = attackers
             return True
         return False
 
     def validate_king_can_be_saved(self):
         """
-        Checks whether the king can be saved. If so it returns None.
-        Otherwise it set
-        Set self.check_mate = True if the king 
+        Checks whether the king can be saved. It returns False if it will die.
+        Or True if there is still some hope.
+        It checks for three main possibilities:
+        1. Check whether the king is able to make a move and get out of check
+        If there are more than 1 attacker and this can't happen he is dead...
+            If there is only one attacker 
+            2. Check for any own figure which can put itself inside the attack line
+            3. Check for any own figure which can attack the one attacker
         """
-        return None
+        # First check whether to king can reposition itself and check for check again
+        # TODO: Check king repositioning
+        # Get the position of the king (use default position first)
+        active_king, enemy_king = ('K', 'k') if self.active_player else ('k', 'K')
+        king_col = 'e'
+        king_row = 7 if self.active_player else 1
+        if self.board[king_col][king_row] != active_king:
+            for col in self.columns:
+                for row in range(8):
+                    if self.board[col][row] == active_king:
+                        king_col = col
+                        king_row = row
+
+        # And the limits for spotting an enemy
+        lower_limit, upper_limit = ('a', 'z') if self.active_player else ('A', 'Z')
+        for col_iterator in [-1, 0, 1]:
+            for row_iterator in [-1, 0, 1]:
+                # So we can look on each position next to the king.
+                # If there is an enemy or an empty spot try to move the king and check for check again
+                try:
+                    new_spot = self.board[
+                        chr(ord(king_col) + col_iterator)][
+                            king_row + row_iterator]
+                    
+                    if ((new_spot >= lower_limit and new_spot <= upper_limit) or 
+                        new_spot == ' '):
+                            # Replace the King
+                            # Careful to save everything which will be changed
+                            # DO
+                            tmp_from_col = self.from_col
+                            tmp_from_row = self.from_row
+                            tmp_to_col = self.to_col
+                            tmp_to_row = self.to_row
+
+                            self.from_col = king_col
+                            self.from_row = king_row
+                            self.to_col = chr(ord(king_col) + col_iterator) 
+                            self.to_row = king_row + col_iterator 
+
+                            # DO
+                            self.make_move()
+
+                            result = True
+                            # Now check first whether the enemy king is in range 
+                            for inner_col_iterator in [-1, 0, 1]:
+                                for inner_row_iterator in [-1, 0, 1]:
+                                    try:
+                                        if self.board[
+                                            chr(ord(self.from_col) + inner_col_iterator)][
+                                                self.from_row + inner_row_iterator] == enemy_king:
+                                                result = False
+                                                break
+                                    except IndexError:
+                                        pass
+
+                            # Only if the move was valid go into further checking
+                            if result:
+                                # DO
+                                attackers_copy = deepcopy(self.attackers)
+
+                                # Then check for the new check and if it returns False
+                                # the king can be saved
+                                result = not self.check_for_check()
+
+                                # UNDO
+                                self.attackers = attackers_copy
+
+
+                            # UNDO
+                            self.make_move(undo=True)
+
+                            # UNDO
+                            self.from_col = tmp_from_col
+                            self.from_row = tmp_from_row 
+                            self.to_col = tmp_to_col 
+                            self.to_row = tmp_to_row 
+                            
+                            # If the result was True we found a way to save the king
+                            if result:
+                                return True
+
+                # If we except an IndexError ignore
+                except IndexError:
+                    pass
+
+        # If that didn't work check whether there is more than one attacker
+        if len(self.attackers) == 1:
+            # TODO: 2nd and 3rd Test
+            # Then try to move any figure inside the attack line
+
+            # If that didn't work try to attack the attacker
+            pass
+
+        # If all checks fail... Check mate
+        return False
     
     def validate_figure_type_in_range(self):
         """
@@ -255,8 +359,6 @@ class ChessValidator():
         The function returns either a string indicating why the figure
         could not go there or None.
         """
-        # TODO: Validate if figure type goes to the correct destination
-
         figure = self.board[self.from_col][self.from_row]
         # There are two types of figures unique ones and generic ones
         # First the generic ones are validated
