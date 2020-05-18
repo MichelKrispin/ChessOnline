@@ -1,4 +1,5 @@
 from ChessBoard import ChessBoard, ChessMove
+import sys
 
 class ChessGame():
     """
@@ -83,7 +84,11 @@ class ChessGame():
                     response = (
                             b'++Invalid input (except row col to row col e.g. a1 to h8) '
                         + str(unique_count).encode())
-                    self.player_connections[self.active_player].sendall(response)
+                    try:
+                        self.player_connections[self.active_player].sendall(response)
+                    except BrokenPipeError:
+                        print('At least one client closed the connection')
+                        sys.exit(1)
                 unique_count += 1
             if self.verbose: print(f"Requested: {request_data.decode('utf-8')}")
 
@@ -111,15 +116,15 @@ class ChessGame():
             return False
 
         # If first character isn't between a and h
-        if data[0] < 96 or data[0] > 105:
+        if data[0] < ord('a') or data[0] > ord('h'):
             return False
         # If second character isn't between 1 and 8
-        if data[1] < 49 or data[1] > 57:
+        if data[1] < ord('1') or data[1] > ord('8'):
             return False
 
-        if data[-2] < 96 or data[-2] > 105:
+        if data[-2] < ord('a') or data[-2] > ord('h'):
             return False
-        if data[-1] < 49 or data[-1] > 57:
+        if data[-1] < ord('1') or data[-1] > ord('8'):
             return False
         
         return True # If passed it is valid

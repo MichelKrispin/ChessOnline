@@ -144,36 +144,14 @@ def testing_chess_validator_move_generic():
 1|r n b q k b n r|
 """)
     
-    from_string = 'a1'
-    to_string = 'a1'
-    active_player = 0
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Same position and same team',
-        Expect.FALSE))
+    for from_string, to_string, description, active_player, expect in (
+            ['a1', 'a1', 'Same position and same team', 0, Expect.FALSE],
+            ['a1', 'a2', 'Same team', 0, Expect.FALSE],
+            ['a1', 'a3', 'Different team ', 1, Expect.FALSE],
+            ):
+        result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
+            board, from_string, to_string, active_player, description, expect))
 
-    # -----
-
-    from_string = 'a1'
-    to_string = 'a2'
-    active_player = 0
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Same team',
-        Expect.FALSE))
-
-    # -----
-
-    from_string = 'a1'
-    to_string = 'a3'
-    active_player = 1
-    result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-        board, from_string, to_string, active_player,
-        'Different team',
-        Expect.FALSE))
-
-    # -----
-    
     result.append('> Finished')
     return result
 
@@ -1073,16 +1051,15 @@ def testing_chess_validator_template():
 1|r n b q k b n r|
 """)
     
-    from_strings = ['a2', 'a2']
-    to_strings = ['a3', 'a4']
-    active_player = 0
-    count = 1
-    for i in range(len(from_strings)):
+    for from_string, to_string, description, active_player, expect in (
+            ['a1', 'a1', 'Same position and same team', 0, Expect.FALSE],
+            ['a1', 'a2', 'Same team', 0, Expect.FALSE],
+            ['a1', 'a3', 'Different team ', 1, Expect.FALSE],
+            ['a7', 'a9', 'Row out of board', 1, Expect.FALSE],
+            ['h1', 'g1', 'Col out of board', 0, Expect.FALSE],
+            ):
         result.append(run_individiual_chess_validate(line_number(),chess_validator.validate_move,
-            board, from_strings[i], to_strings[i], active_player,
-            f'Drawing pawn {from_string[i]} to {to_strings[i]} ({count})',
-            Expect.TRUE))
-        count += 1
+            board, from_string, to_string, active_player, description, expect))
 
     # ------
 
@@ -1099,12 +1076,15 @@ def run_individiual_chess_validate(line, validate, board, from_string, to_string
     """
     result = ''
     with suppress_stdout():
+        try:
             result = test_result(
                 validate(
                 board, from_string, to_string, player),
                 msg,
                 line,
                 expect)
+        except Exception as e:
+            result = f'- Test ({msg}) at line {line} threw {str(e)}'
     return result
 
 def test_result(result, out_message, line_number, expect):
