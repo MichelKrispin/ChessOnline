@@ -25,9 +25,7 @@ def connect_to_server(verbose=True):
             if old_data != data:
                 old_data = data
                 if data != b'':
-                    # print(f"Received: {data.decode('utf-8')}")
                     print(render_received_byte_text(data))
-                    # render_received_byte_text(data)
                     pass
                 else:
                     print('The connection was closed')
