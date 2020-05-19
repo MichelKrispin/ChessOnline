@@ -2,7 +2,8 @@
 
 import argparse
 
-from Server.Testing.testing import run_all_tests
+from Server.Testing import *
+from Server.Testing.Tests import run_all_tests
 
 def parse_arguments():
     """
