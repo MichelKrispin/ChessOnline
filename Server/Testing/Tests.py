@@ -23,6 +23,7 @@ from ..Chess.ChessValidator import ChessValidator
    3.3 The description should be meaningful. If the test fails this will be helpful.
    3.4 The team is either 0 (white) or 1 (black)
    3.5 If the test should fail (e.g. the move should'nt work) its Expect.False and vice versa
+   3.6 You can create custom helper functions inside of the files just don't let them start with testing_
 4. Run the file and see whether the test has passed
 """
 
@@ -81,6 +82,7 @@ REMINDER
 
 def import_submodules(package, recursive=True):
     """
+    (Copied from stackoverflow)
     Import all submodules of a module, recursively, including subpackages.
     The package should be an imported package.
     In this case its this packages parent.
@@ -98,7 +100,7 @@ def import_submodules(package, recursive=True):
 
 def run_test(testing_function, shorten):
     """
-    Run a test and print its results.
+    Run a single test and print its results.
     """
     # Title capitalizes the first letter of each word
     test_name = '>> ' + testing_function.__name__.replace('_', ' ').title()
@@ -141,6 +143,7 @@ def run_all_tests(shorten=True):
                     name, _ = function
                     if 'testing_' in name:
                         _, test_function = function
+                        break
             else:
                 _, test_function = functions_list[0]
             run_test(test_function, shorten)
