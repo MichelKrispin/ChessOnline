@@ -1,5 +1,6 @@
-from ChessValidator import ChessValidator
 from enum import Enum
+
+from .ChessValidator import ChessValidator
 
 
 class ChessMove(Enum):
@@ -83,4 +84,3 @@ class ChessBoard():
             result += '.'
 
         return result.encode()
-

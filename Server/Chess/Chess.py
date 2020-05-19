@@ -1,5 +1,7 @@
-from ChessBoard import ChessBoard, ChessMove
 import sys
+
+from .ChessBoard import ChessBoard, ChessMove
+
 
 class ChessGame():
     """
@@ -51,7 +53,11 @@ class ChessGame():
             # Check for a valid input for as long as it is needed
             unique_count = 0
             while True:
-                request_data = self.player_connections[self.active_player].recv(1024)
+                try:
+                    request_data = self.player_connections[self.active_player].recv(1024)
+                except ConnectionResetError, ConnectionAbortedError:
+                    print('At least one client closed the connection')
+                    sys.exit(1)
 
                 # Check if the input is valid (a1 to h8 etc.)
                 if self.validate_request_data(request_data):
@@ -138,4 +144,3 @@ class ChessGame():
         else:
             self.active_player = self.player['black']
             self.inactive_player = self.player['white']
-

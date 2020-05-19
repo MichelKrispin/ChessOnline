@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-from ChessValidator import ChessValidator
+import inspect
+import os
+import sys
 from contextlib import contextmanager
 from enum import Enum
-import sys, os
-import inspect
-import argparse
+
+from ..Chess.ChessValidator import ChessValidator
+
 
 """
 # How To
@@ -1302,26 +1304,10 @@ def run_test(testing_function, shorten):
     global test_counter 
     test_counter += len(r) - 1 # Minus the > Finished
 
-def parse_arguments():
-    """
-    Parse the command line arguments if there are any.
-    """
-    parser = argparse.ArgumentParser(description='Test all existing test cases.')
-    # Add the shorten argument
-    parser.add_argument(
-            'shorten',
-            nargs='?',
-            help='Shorten the output to print only the details of failed tests.',
-    )
-    return parser.parse_args()
-
-if __name__ == '__main__':
+def run_all_tests(shorten=True):
     global test_counter
     test_counter = 0
 
-    args = parse_arguments()
-
-    shorten = True if args.shorten else False
     run_test(testing_chess_validator_move_generic, shorten)
     run_test(testing_chess_validator_move_rook, shorten)
     run_test(testing_chess_validator_move_knight, shorten)
@@ -1334,3 +1320,4 @@ if __name__ == '__main__':
     run_test(testing_chess_validator_king_can_be_saved, shorten)
 
     print(f'Ran {test_counter} tests')
+    
