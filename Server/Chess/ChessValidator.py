@@ -209,9 +209,14 @@ class ChessValidator():
                 i += direction
 
         # - Knight
+        # Go trough all possible knight spots around the king
         for i in range(8):
             knight_indices = [-2, -1, 1, 2, 2, 1, -1, -2]
             try:
+                # Check for positive row as otherwise the python addressing would wrap around
+                if king_row + knight_indices[(i+2)%8] < 0:
+                    continue
+                # Then check whether there is a knight on that position
                 if self.board[
                     chr(ord(king_col) + knight_indices[i])][
                     king_row + knight_indices[(i+2)%8]] == knight_attacker:
@@ -223,6 +228,7 @@ class ChessValidator():
                 pass
 
         # - Pawn
+        # Check both possible Pawn attack points
         pawn_col = chr(ord(king_col) - 1) if active_king else king_col + 1
         try: # Right side
             if self.board[pawn_col][king_row + 1] == pawn_attacker:
@@ -232,12 +238,14 @@ class ChessValidator():
             pass
 
         try: # Left side
-            if self.board[pawn_col][king_row - 1] == pawn_attacker:
+            # Check for positive row as otherwise the python addressing would wrap around
+            if king_row - 1 < 0 and self.board[pawn_col][king_row - 1] == pawn_attacker:
                     attacker.append([pawn_col, king_row - 1])
                     print('Attacked by a knight')
         except IndexError: # Ignore because its outide of the board
             pass
 
+        # - Check for attackers
         # If there are any attacker then its check
         if len(attackers) > 0:
             # If there are attacker then save them for the validate_king_can_be_saved function
@@ -273,6 +281,12 @@ class ChessValidator():
         lower_limit, upper_limit = ('a', 'z') if self.active_player else ('A', 'Z')
         for col_iterator in [-1, 0, 1]:
             for row_iterator in [-1, 0, 1]:
+                # First check whether king_row + row_iterator is negative
+                # The python list addressing style would wrap around and get the last element
+                # This only applies to rows as the columns are dictionaries and characters
+                if king_row + row_iterator < 0:
+                    continue # Then this spot is not in the field
+
                 # So we can look on each position next to the king.
                 # If there is an enemy or an empty spot try to move the king and check for check again
                 try:
@@ -293,7 +307,7 @@ class ChessValidator():
                             self.from_col = king_col
                             self.from_row = king_row
                             self.to_col = chr(ord(king_col) + col_iterator) 
-                            self.to_row = king_row + col_iterator 
+                            self.to_row = king_row + row_iterator 
 
                             # DO
                             self.make_move()
@@ -303,9 +317,12 @@ class ChessValidator():
                             for inner_col_iterator in [-1, 0, 1]:
                                 for inner_row_iterator in [-1, 0, 1]:
                                     try:
+                                        # First check for negative row as python indexing would allow wrapping around
+                                        if self.from_row + inner_row_iterator < 0:
+                                            continue
                                         if self.board[
-                                            chr(ord(self.from_col) + inner_col_iterator)][
-                                                self.from_row + inner_row_iterator] == enemy_king:
+                                            chr(ord(self.to_col) + inner_col_iterator)][
+                                                self.to_row + inner_row_iterator] == enemy_king:
                                                 result = False
                                                 break
                                     except IndexError:
@@ -364,7 +381,8 @@ class ChessValidator():
         # First the generic ones are validated
         # These are r/R, b/B, n/N, q/Q, k/K
 
-        if figure in ['r', 'R']: # Rook
+        # - Rook
+        if figure in ['r', 'R']:
             # Rook is allowed to go along the column and rows
             # So either the columns or the rows must be the same
             if (self.from_col != self.to_col and
@@ -388,7 +406,8 @@ class ChessValidator():
                     if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
                         return 'Rook - Someone in between (row)'
 
-        elif figure in ['n', 'N']: # White Knight
+        # - Knight
+        elif figure in ['n', 'N']:
             print('Figure is n')
             # The knight can go two steps in one direction and one step
             # in the perpendicular direction
@@ -402,7 +421,8 @@ class ChessValidator():
             if col_difference + row_difference != 3:
                 return 'Knight - Not going two steps then sideways'
 
-        elif figure in ['b', 'B']: # Bishop
+        # - Bishop
+        elif figure in ['b', 'B']:
             # The difference between the columns and the rows has to be the same
             # because the Bishop is allowed to walk in diagonal lines
             if (abs(ord(self.from_col) - ord(self.to_col)) !=
@@ -432,7 +452,8 @@ class ChessValidator():
                 if col_difference > 0: col_difference -= 1
                 else: col_difference += 1
 
-        elif figure in ['q', 'Q']: # Queen
+        # - Queen
+        elif figure in ['q', 'Q']:
             # The queen is a combination of the rook and the bishop so everything is just
             # split up into two geater ifs and then the source of the rook and the bishop
             # is copied down there
@@ -478,7 +499,8 @@ class ChessValidator():
                         if self.board[chr(ord(smaller) + i)][self.from_row] != ' ':
                             return 'Queen - Someone in between (row)'
 
-        elif figure in ['k', 'K']: # King
+        # - King
+        elif figure in ['k', 'K']:
             # The king is only allowed to do one step.
             # So the differences from new to old columns can only
             # be 1 or 0. Otherwise the turn is invalid.
@@ -493,6 +515,9 @@ class ChessValidator():
                 for row_iterator in [-1, 0, 1]:
                     # We can look all places as we are just looking for the enemy king
                     try:
+                        # First check for negative row as python indexing would allow wrapping around
+                        if self.from_row + row_iterator < 0:
+                            continue
                         if self.board[
                             chr(ord(self.to_col) + col_iterator)][
                                 self.to_row + row_iterator] == enemy_king:

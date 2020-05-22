@@ -60,7 +60,7 @@ def testing_chess_validator_king_can_be_saved():
     with suppress_stdout():
         result.append(test_result(
             chess_validator.validate_king_can_be_saved(),
-            'Check mate by R,Q,B,K',
+            'Check mate by R,Q,B,K (King cannot be saved)',
             line_number(),
             Expect.FALSE))
 
