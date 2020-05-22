@@ -436,19 +436,15 @@ class ChessValidator():
                             self.from_row = row
                             self.to_col = spot_col
                             self.to_row = spot_row
-
-                            # ---- DO -----
+                            # ---- END DO -----
 
                             # Check whether from same team or moving onto emeny king is useless...
                             # So check whether that move is valid and if not go to undo
-                            if not self.validate_figure_type_in_range():
-                                pass
-                            
-                            else:
+                            if self.validate_figure_type_in_range():
                                 # ---- DO -----
                                 attackers_copy = deepcopy(self.attackers)
                                 self.make_move()
-                                # ---- DO -----
+                                # ---- END DO -----
 
                                 still_in_check = True
 
@@ -458,14 +454,13 @@ class ChessValidator():
                             
                                 # ---- UNDO -----
                                 self.attackers = attackers_copy
-
                                 self.make_move(undo=True)
         
                             self.from_col = tmp_from_col
                             self.from_row = tmp_from_row 
                             self.to_col = tmp_to_col 
                             self.to_row = tmp_to_row 
-                            # ---- UNDO -----
+                            # ---- END UNDO -----
 
                             # After undoing everything if the move accomplished that there it not
                             # check anymore... This function can return a nice True
