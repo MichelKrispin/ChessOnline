@@ -298,6 +298,8 @@ class ChessValidator():
                         new_spot == ' '):
                             # Replace the King
                             # Careful to save everything which will be changed
+                            # So everything below DO changes something 
+                            # And everything bewlow UNDO undo that changes
                             # DO
                             tmp_from_col = self.from_col
                             tmp_from_row = self.from_row
