@@ -122,7 +122,7 @@ class Test():
         if len(self.failed_tests):
             print(f'    {len(self.failed_tests)} failed')
             for result, f in self.failed_tests:
-                print(f'    -> {result.replace("- FAILED - ", "")} in {f}')
+                print(f'    -> {result.replace("- FAILED - ", f"In {f}, ")}')
         else:
             print('All tests succeeded')
         
