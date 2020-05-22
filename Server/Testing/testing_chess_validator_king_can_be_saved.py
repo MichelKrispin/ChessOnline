@@ -98,8 +98,18 @@ def testing_chess_validator_king_can_be_saved():
 2|p p p p     p p|
 1|r n b q k b n r|
 """)) # 2
+    boards.append(generate_board_from_string("""
+8|R N B     B N R|
+7|P P P P P P P P|
+6|               |
+5|               |
+4|               |
+3|        K      |
+2|p p p p Q p p p|
+1|r n b q k b n r|
+""")) # 3 (bishop or knight has to attack Queen)
 
-    attackers = [[['e', 4]], [['e', 1]], [['h', 3]]]
+    attackers = [[['e', 4]], [['e', 1]], [['h', 3]], [['e', 1]]]
     count = 0
     for board in boards:
         chess_validator.board = board
