@@ -294,12 +294,12 @@ class ChessValidator():
                         chr(ord(king_col) + col_iterator)][
                             king_row + row_iterator]
                     
-                    if ((new_spot >= lower_limit and new_spot <= upper_limit) or 
+                    if ((lower_limit <= new_spot <= upper_limit) or 
                         new_spot == ' '):
                             # Replace the King
                             # Careful to save everything which will be changed
                             # So everything below DO changes something 
-                            # And everything bewlow UNDO undo that changes
+                            # And everything below UNDO undo those changes
                             # DO
                             tmp_from_col = self.from_col
                             tmp_from_row = self.from_row
@@ -360,13 +360,113 @@ class ChessValidator():
                 except IndexError:
                     pass
 
-        # If that didn't work check whether there is more than one attacker
+        # If that didn't work check whether there is only one attacker
+        # and if so look for all own figures who can maybe save the king by
+        # going between the attacker or by attacking it.
+        # This seems like a complicated loop but its (hopefully) a rare case in a whole game.
         if len(self.attackers) == 1:
-            # TODO: 2nd and 3rd Test
-            # Then try to move any figure inside the attack line
+            # So first make a list of all fields in between the attacker and the king
+            # (+ the field of the attacker...)
+            # e.g. k       R
+            # then   ^ ^ ^ ^ should be saved.
+            # Then all own figures can be checked whether they can make a move over there
+            # and if it is still check. If that fails for all figures there is no help. At all.
+            
+            # Get all attacking fields
+            attacker_col, attacker_row = self.attackers[0][0], self.attackers[0][1]
+            attacker = self.board[attacker_col][attacker_row]
+            # The attackers position is always included (saved as a tuple!)
+            attacking_spots = [(self.attackers[0][0], self.attackers[0][1],)]
 
-            # If that didn't work try to attack the attacker
-            pass
+            # If the attacker is a knight or pawn that is the only position
+            if attacker not in ['n', 'N', 'p', 'P']:
+                # Otherwise it can only be a rook, queen or bishop (straight or diagonal)
+                # Rook move if either columns or rows are the same
+                if attacker_col == king_col:
+                    # Add all rows in between
+                    row_offset = attacker_row - king_row
+                    multiplier = 1 if row_offset < 0 else (-1) # Going up or down the column
+                    row_offset += multiplier # Step once
+                    while row_offset != 0: # == 0 king spot
+                        attacking_spots.append((attacker_col, king_row + row_offset,))
+                        row_offset += multiplier
+
+                elif attacker_row == king_col:
+                    # Add all columns in between
+                    col_offset = ord(attacker_col) - ord(king_col)
+                    multiplier = 1 if col_offset < 0 else (-1) # Going the row right or left
+                    col_offset += multiplier # Step once
+                    while col_offset != 0: # == 0 king spot
+                        attacking_spots.append((chr(ord(king_col) + col_offset), attacker_row,))
+                        col_offset += multiplier
+                
+                # Bishop move
+                else:
+                    # Add all diagonal spots in between
+                    col_offset = ord(attacker_col) - ord(king_col)
+                    row_offset = attacker_row - king_row
+                    col_multiplier = 1 if col_offset < 0 else (-1) # Going up or down the column
+                    row_multiplier = 1 if row_offset < 0 else (-1) # Going the row right or left
+                    col_offset += col_multiplier # Step once
+                    row_offset += row_multiplier # Step once
+                    while col_offset != 0: # == 0 king spot
+                        attacking_spots.append((chr(ord(king_col) + col_offset), attacker_row + row_offset,))
+                        # Step
+                        col_offset += col_multiplier
+                        row_offset += row_multiplier
+            
+            # Now go trough all own figures and check whether they can save the king
+            lower_limit, upper_limit = ('a', 'z') if self.active_player else ('A', 'Z')
+            for col in self.columns:
+                for row in range(8):
+                    # Check if its a figure of the active player
+                    if lower_limit <= self.board[col][row] <= upper_limit:
+                        # Then try to move this figure to an attacking spot
+                        for spot_col, spot_row in attacking_spots:
+                            # Careful to save everything which will be changed
+                            # So everything in between DO changes something 
+                            # And everything in between UNDO undo those changes
+                            # ---- DO -----
+                            tmp_from_col = self.from_col
+                            tmp_from_row = self.from_row
+                            tmp_to_col = self.to_col
+                            tmp_to_row = self.to_row
+
+                            self.from_col = col
+                            self.from_row = row
+                            self.to_col = spot_col
+                            self.to_row = spot_row
+
+                            attackers_copy = deepcopy(self.attackers)
+
+                            self.make_move()
+                            # ---- DO -----
+
+                            still_in_check = True
+                            # Check whether from same team or moving onto emeny king is useless...
+                            # So check whether that move is valid and if not go to undo
+                            if not self.validate_figure_type_in_range():
+                                pass
+
+                            # Then check whether its still check. If not 
+                            elif not self.check_for_check():
+                                still_in_check = False
+                           
+                            # ---- UNDO -----
+                            self.attackers = attackers_copy
+
+                            self.make_move(undo=True)
+        
+                            self.from_col = tmp_from_col
+                            self.from_row = tmp_from_row 
+                            self.to_col = tmp_to_col 
+                            self.to_row = tmp_to_row 
+                            # ---- UNDO -----
+
+                            # After undoing everything if the move accomplished that there it not
+                            # check anymore... This function can return a nice True
+                            if not still_in_check:
+                                return True
 
         # If all checks fail... Check mate
         return False

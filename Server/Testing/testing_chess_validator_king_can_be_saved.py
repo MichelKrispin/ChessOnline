@@ -105,11 +105,46 @@ def testing_chess_validator_king_can_be_saved():
 5|               |
 4|               |
 3|        K      |
-2|p p p p Q p p p|
+2|p p p   Q   p p|
 1|r n b q k b n r|
-""")) # 3 (bishop or knight has to attack Queen)
+""")) # 3
+    boards.append(generate_board_from_string("""
+8|R N B Q K B   R|
+7|P P P P P P P P|
+6|               |
+5|               |
+4|               |
+3|          N    |
+2|p p p p p p p p|
+1|r n b q k b n r|
+""")) # 4
+    boards.append(generate_board_from_string("""
+8|R N B Q K B N  |
+7|P P P P P P P P|
+6|               |
+5|        R      |
+4|r              |
+3|      p   p    |
+2|p p   p k p   p|
+1|  n b q   b n r|
+""")) # 5
 
-    attackers = [[['e', 4]], [['e', 1]], [['h', 3]], [['e', 1]]]
+    attackers = [
+        [['e', 4]],
+        [['e', 1]],
+        [['h', 3]],
+        [['e', 1]],
+        [['f', 2]],
+        [['e', 4]],
+    ]
+    descriptions = [
+        "Other figure stepping in between",
+        "King attacks attacker himself",
+        "King stepps away",
+        "Bishop or knight attacks attacker (king can't move)",
+        "Someone attacks knight (king can't move)",
+        "Rook steps in (king can't move)",
+    ]
     count = 0
     for board in boards:
         chess_validator.board = board
@@ -117,7 +152,7 @@ def testing_chess_validator_king_can_be_saved():
         with suppress_stdout():
             result.append(test_result(
                 chess_validator.validate_king_can_be_saved(),
-                f'King can be saved (board {count})',
+                descriptions[count] + f' (board {count})',
                 line_number(),
                 Expect.TRUE))
         count += 1
