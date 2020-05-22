@@ -1,16 +1,5 @@
-from enum import Enum
-
+from .Chess import ChessMove
 from .ChessValidator import ChessValidator
-
-
-class ChessMove(Enum):
-    """
-    Simple enum to determine the result of a move.
-    """
-    INVALID_MOVE = -1
-    PASSED = 0
-    CHECK_MATE = 1
-    STALE_MATE = 2
 
 
 class ChessBoard():
@@ -68,9 +57,9 @@ class ChessBoard():
         self.board[to_string[0]][int(to_string[1])-1] = figure
         return ChessMove.PASSED
 
-    def render_to_byte_text(self):
+    def render_to_text(self):
         """
-        Renders all board information to a byte string which can be send.
+        Renders all board information to a string which can be send.
         The string has all information separated by commmas and a dot for line break.
         The default board would be send as:
         R,N,B,Q,K,B,N,R.P,P,P,P,P,P,P,P. , , , , , , , . , , , , , , , . , , , , , , , . , , , , , , , .p,p,p,p,p,p,p,p.r,n,b,q,k,b,n,r.
@@ -83,4 +72,17 @@ class ChessBoard():
                 result += self.board[char][index]
             result += '.'
 
-        return result.encode()
+        return result
+
+    def render_to_state(self):
+        """
+        Renders all board information to a string containing all ifnromation of the board
+        as a coherent string. This string is always 8*8 elements long. The figures are 
+        represented by their characters and the empty spaces with spaces. That means:
+        RNBQKBNRPPPPPPP      <a lot of spaces (32)> pppppppprnbqkbnr
+        """
+        result = ''
+        for index in [7, 6, 5, 4, 3, 2, 1, 0]:
+            for char in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']:
+                result += self.board[char][index]
+        return result

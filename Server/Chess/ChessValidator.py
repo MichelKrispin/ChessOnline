@@ -82,7 +82,6 @@ class ChessValidator():
             return False
         self.make_move(undo=True)
         # If the move won't get the active team in a check its alright
-        if self.verbose: print("Validator -> Valid move")
         return True
 
     def validate_figure_from_active_team(self):
