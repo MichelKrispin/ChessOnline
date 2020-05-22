@@ -3,7 +3,7 @@
 import argparse
 
 from Server.Testing import *
-from Server.Testing.Tests import run_all_tests
+from Server.Testing.Tests import Test
 
 def parse_arguments():
     """
@@ -20,4 +20,5 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
-    run_all_tests(True if args.shorten else False)
+    test = Test()
+    test.run(True if args.shorten else False)

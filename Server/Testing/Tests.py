@@ -80,72 +80,92 @@ REMINDER
   a b c d e f g h
 """
 
-def import_submodules(package, recursive=True):
-    """
-    (Copied from stackoverflow)
-    Import all submodules of a module, recursively, including subpackages.
-    The package should be an imported package.
-    In this case its this packages parent.
-    It returns a dict of {name: module}.
-    """
-    if isinstance(package, str):
-        package = importlib.import_module(package)
-    results = {}
-    for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
-        full_name = package.__name__ + '.' + name
-        results[full_name] = importlib.import_module(full_name)
-        if recursive and is_pkg:
-            results.update(import_submodules(full_name))
-    return results
+class Test():
+    def __init__(self, shorten=True):
+        self.shorten = True
+        self.test_counter = 0
+        self.failed_tests = []
 
-def run_test(testing_function, shorten):
-    """
-    Run a single test and print its results.
-    """
-    # Title capitalizes the first letter of each word
-    test_name = '>> ' + testing_function.__name__.replace('_', ' ').title()
-    print(test_name)
+    def run(self, shorten=True):
+        """
+        Looks trough all submodules inside this module.
+        Then it looks for all files starting with testing_
+        and imports their function and then runs their test.
+        """
 
-    result = testing_function()
-    for r in result:
-        if shorten:
-            if '+' in r:
-                print('+ ', end='')
-            else:
-                print('\n' + r)
+        # Check all submodules for testing_... files and call their testing_... function
+        submodules = self.import_submodules(Testing)
+        for name in submodules.keys():
+            # Only import it if 
+            if '.testing_' in name:
+                functions_list = [f for f in getmembers(submodules[name]) if isfunction(f[1])]
+                
+                test_function = None
+                # If there is more than one function only call the function with testing_ in front
+                if len(functions_list):
+                    for function in functions_list:
+                        name, _ = function
+                        if 'testing_' in name:
+                            _, test_function = function
+                            break
+                else:
+                    _, test_function = functions_list[0]
+                
+                # Then run this function as a test
+                self.run_test(test_function, self.shorten)
+
+        # Then make a summary
+        print('\n----- Summary -----')
+        print(f'Ran {self.test_counter} tests')
+        
+        # If there failed some tests list the
+        if len(self.failed_tests):
+            print(f'    {len(self.failed_tests)} failed')
+            for result, f in self.failed_tests:
+                print(f'    -> {result.replace("- FAILED - ", "")} in {f}')
         else:
-            print(r)
-    print('')
+            print('All tests succeeded')
+        
+    def run_test(self, testing_function, shorten):
+        """
+        Run a single test and print its results.
+        """
+        # Title capitalizes the first letter of each word
+        test_name = '>> ' + testing_function.__name__.replace('_', ' ').title()
+        print(test_name)
 
-    global test_counter
-    test_counter += len(result) - 1 # Minus the > Finished
-
-def run_all_tests(shorten=True):
-    """
-    Looks trough all submodules inside this module.
-    Then it looks for all files starting with testing_
-    and imports their function and then runs their test.
-    """
-    global test_counter
-    test_counter = 0
-
-    # Check all submodules for testing_... files and call their testing_... function
-    submodules = import_submodules(Testing)
-    for name in submodules.keys():
-        # Only import it if 
-        if '.testing_' in name:
-            functions_list = [f for f in getmembers(submodules[name]) if isfunction(f[1])]
-            
-            test_function = None
-            # If there is more than one function only call the function with testing_ in fron
-            if len(functions_list):
-                for function in functions_list:
-                    name, _ = function
-                    if 'testing_' in name:
-                        _, test_function = function
-                        break
+        # Get the result of the testing function and print it according to arguments
+        result = testing_function()
+        for r in result:
+            if shorten:
+                if '+' in r:
+                    print('+ ', end='')
+                else:
+                    print('\n' + r)
             else:
-                _, test_function = functions_list[0]
-            run_test(test_function, shorten)
+                print(r)
 
-    print(f'Ran {test_counter} tests')
+            # If the test failed add it to the list of failed tests
+            if 'FAILED' in r:
+                self.failed_tests.append((r, testing_function.__name__,))
+        print('')
+
+        self.test_counter += len(result) - 1 # Minus the > Finished
+
+    def import_submodules(self, package, recursive=True):
+        """
+        (Copied from stackoverflow)
+        Import all submodules of a module, recursively, including subpackages.
+        The package should be an imported package.
+        In this case its this packages parent.
+        It returns a dict of {name: module}.
+        """
+        if isinstance(package, str):
+            package = importlib.import_module(package)
+        results = {}
+        for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+            full_name = package.__name__ + '.' + name
+            results[full_name] = importlib.import_module(full_name)
+            if recursive and is_pkg:
+                results.update(import_submodules(full_name))
+        return results
