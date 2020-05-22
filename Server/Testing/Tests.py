@@ -25,6 +25,9 @@ from ..Chess.ChessValidator import ChessValidator
    3.5 If the test should fail (e.g. the move should'nt work) its Expect.False and vice versa
    3.6 You can create custom helper functions inside of the files just don't let them start with testing_
 4. Run the file and see whether the test has passed
+
+Notes:
+- The testing suppresses all printing to console of the actual functions
 """
 
 '''

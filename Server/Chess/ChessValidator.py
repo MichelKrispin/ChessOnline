@@ -416,7 +416,7 @@ class ChessValidator():
                         row_offset += row_multiplier
             
             # Now go trough all own figures and check whether they can save the king
-            lower_limit, upper_limit = ('a', 'z') if self.active_player else ('A', 'Z')
+            lower_limit, upper_limit = ('A', 'Z') if self.active_player else ('a', 'z')
             for col in self.columns:
                 for row in range(8):
                     # Check if its a figure of the active player
@@ -437,25 +437,29 @@ class ChessValidator():
                             self.to_col = spot_col
                             self.to_row = spot_row
 
-                            attackers_copy = deepcopy(self.attackers)
-
-                            self.make_move()
                             # ---- DO -----
 
-                            still_in_check = True
                             # Check whether from same team or moving onto emeny king is useless...
                             # So check whether that move is valid and if not go to undo
                             if not self.validate_figure_type_in_range():
                                 pass
+                            
+                            else:
+                                # ---- DO -----
+                                attackers_copy = deepcopy(self.attackers)
+                                self.make_move()
+                                # ---- DO -----
 
-                            # Then check whether its still check. If not 
-                            elif not self.check_for_check():
-                                still_in_check = False
-                           
-                            # ---- UNDO -----
-                            self.attackers = attackers_copy
+                                still_in_check = True
 
-                            self.make_move(undo=True)
+                                # Then check whether its still check. If not 
+                                if not self.check_for_check():
+                                    still_in_check = False
+                            
+                                # ---- UNDO -----
+                                self.attackers = attackers_copy
+
+                                self.make_move(undo=True)
         
                             self.from_col = tmp_from_col
                             self.from_row = tmp_from_row 
