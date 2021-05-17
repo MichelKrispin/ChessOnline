@@ -22,7 +22,9 @@ The client will wait for two incoming connections and then handle the input.
 A client is only connecting to the server and responds to the messages sent by the server.
 A move is made by typing `<from> <to>` where each value is the column and the row from a to h and 1 to 8.
 So possible moves are:
+
 1st player: `a2 a3`
+
 2nd player: `a7 a6`
 
 
